@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bibokatalog RoRo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 1rem;
+      background: #EADDCA;
+    }
+
+    h1, h3 {
+      margin: 0;
+      text-align: center;    
+    }
+
+    .header-div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0px;
+    }
+
+    .header-texts {
+      flex: 1;
+      text-align: center;
+    }
+
+    .bibo-h3 {
+      font-weight: bold;
+      margin-left: 25%;
+      margin-top: 7%;
+    }
+
+    #search {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      margin-top: 3%;
+    }
+
+    #auswahl-info {
+      margin-top: 8%;
+      margin-left: 3%;
+      font-size: 20px;
+    }
+
+    #book-list {
+      /* leer, nur hier werden die Ergebnisse angezeigt */
+    }
+
+    .book {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      background: white;
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .book img {
+      width: 80px;
+      height: auto;
+      border-radius: 4px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .book-details {
+      flex-grow: 1;
+    }
+
+    .book-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .book-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .book-signature {
+      font-weight: bold;
+      font-size: 2rem;
+      color: #666;
+      margin-right: 2%;
+    }
+
+    .book-author {
+      color: #555;
+      margin-top: 0.2rem;
+    }
+
+    .book-meta {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 5%;
+    }
+
+    #lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      cursor: zoom-out;
+    }
+
+    #lightbox-overlay img {
+      height: 80%;
+      width: auto;
+      border-radius: 8px;
+      cursor: default;
+    }
+
+    .logo {
+        width: 150px;
+        margin-bottom: 0px;
+        padding: 0px;
+        margin-top: 10px;
+    }
+    
+    h1 {
+        margin-top: 0;
+    }
+    
+    #meta-span {
+        display: none;
+    }    
+
+    footer {
+        text-align: center;
+        margin-top: 10%;
+    }
+
+    footer p {
+        margin-top: 0;
+    }
+
+    footer a {
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    @media (max-width: 768px) {
+        body {
+            max-width: 300px;
+        }
+
+        #meta-span {
+            display: block;
+            color: transparent;
+        }
+        
+        .logo {
+            width: 50%;
+            height: auto;
+            margin-left: 25%;
+        }
+    }    
+  </style>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="header-div">
+       <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
+       <img class="logo" src="logo.png" alt="Logo der Bibliothek"></div>
+  <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
+  <p id="auswahl-info">- Neuanschaffungen -</p>
+  <div id="book-list"></div>
+
+  <div id="lightbox-overlay">
+    <img src="" alt="Vergrößertes Buchcover" />
+  </div>
+
+  <footer>
+       <hr size="2" noshade style="width: 30%;">
+       <p class="impressum"><a href="impressum.html">Impressum</a></p>
+  </footer>
+
+<script>
+  const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
+
+  const supabase = window.supabase.createClient(
+    "https://euuptkidjsquvhohvicv.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2xkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4"
+  );
+
+  let medien = [];
+  let auswahl = [];
+  let searchCounter = 0;
+
+  async function ladeMedien() {
+    console.log("📥 Lade medien.json von Supabase...");
+    const { data } = supabase.storage.from("medien").getPublicUrl("medien.json");
+    const url = data.publicUrl;
+    console.log("🌐 JSON-URL:", url);
+
+    const res = await fetch(url);
+    medien = await res.json();
+    console.log("📚 Anzahl Medien geladen:", medien.length);
+
+    await ladeAuswahl();
+
+    setupSearch();
+  }
+
+  async function ladeAuswahl() {
+    console.log("📥 Lade auswahl.json von Supabase...");
+    const { data } = supabase.storage.from("medien").getPublicUrl("auswahl.json");
+    const url = data.publicUrl;
+    console.log("🌐 Auswahl-JSON-URL:", url);
+
+    const res = await fetch(url);
+    auswahl = await res.json();
+    console.log("📚 Anzahl Auswahl geladen:", auswahl.length);
+
+    const container = document.getElementById("book-list");
+    const listeMitCovers = await prepareCovers(auswahl);
+    renderListeMitCovers(listeMitCovers, container);
+  }
+
+  function setupSearch() {
+    const searchInput = document.getElementById("search");
+    const container = document.getElementById("book-list");
+    const auswahlInfo = document.getElementById("auswahl-info");
+
+    searchInput.addEventListener("input", async function () {
+      const currentSearchId = ++searchCounter;
+      const q = this.value.trim().toLowerCase();
+
+      if (q.length === 0) {
+        auswahlInfo.style.display = "block"; // Anzeige nur bei leerem Suchfeld
+        const listeMitCovers = await prepareCovers(auswahl);
+        if (currentSearchId !== searchCounter) return;
+        renderListeMitCovers(listeMitCovers, container);
+        return;
+      }
+
+      auswahlInfo.style.display = "none"; // Verstecken bei Suche
+
+      let gefiltert = medien.filter((b) => {
+        const titel = (b.Titel || "").toLowerCase();
+        const autor = (b.Autor || "").toLowerCase();
+        return titel.includes(q) || autor.includes(q);
+      });
+
+      gefiltert = uniqueByNummer(gefiltert);
+
+      console.log(`🔍 Suche nach "${q}", Treffer: ${gefiltert.length}`);
+
+      const listeMitCovers = await prepareCovers(gefiltert);
+
+      if (currentSearchId !== searchCounter) {
+        return;
+      }
+
+      renderListeMitCovers(listeMitCovers, container);
+    });
+  }
+
+  function uniqueByNummer(arr) {
+    const seen = new Set();
+    return arr.filter((item) => {
+      if (!item.Nummer) return true;
+      if (seen.has(item.Nummer)) return false;
+      seen.add(item.Nummer);
+      return true;
+    });
+  }
+
+  async function prepareCovers(liste) {
+    const results = await Promise.all(
+      liste.map(async (b) => {
+        const isbnRaw = (b.ISBN || b.isbn || "").toString().trim();
+        const isbn = isbnRaw.replace(/-/g, "");
+        const coverUrl = await holeCoverURL(isbn);
+        return { ...b, coverUrl };
+      })
+    );
+    return results;
+  }
+
+  async function holeCoverURL(isbn) {
+    if (!isbn) return "thumbnail.png";
+
+    const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+
+    function pruefeBild(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          if (img.width > 50 && img.height > 50) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        };
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    if (await pruefeBild(olUrlLarge)) {
+      console.log(`✅ OpenLibrary Large Cover OK für ISBN ${isbn}: ${olUrlLarge}`);
+      return olUrlLarge;
+    }
+
+    try {
+      const googleRes = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
+      );
+      const googleData = await googleRes.json();
+      if (googleData.totalItems > 0) {
+        const imgLinks = googleData.items[0]?.volumeInfo?.imageLinks;
+        if (imgLinks?.thumbnail) {
+          console.log(`🔄 Google Books Thumbnail für ISBN ${isbn}: ${imgLinks.thumbnail}`);
+          return imgLinks.thumbnail.replace("http:", "https:");
+        }
+      }
+    } catch (err) {
+      console.warn(`⚠️ Google Books Fehler bei ISBN ${isbn}:`, err);
+    }
+
+    const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+    if (await pruefeBild(olUrlMedium)) {
+      console.log(`⚠️ Fallback OpenLibrary Medium für ISBN ${isbn}: ${olUrlMedium}`);
+      return olUrlMedium;
+    }
+
+    console.log(`❌ Kein Cover gefunden für ISBN ${isbn}, zeige Platzhalter.`);
+    return "thumbnail.png";
+  }
+
+  function renderListeMitCovers(liste, container) {
+    container.innerHTML = "";
+    for (const b of liste) {
+      const isbnRaw = (b.ISBN || b.isbn || "").toString().trim();
+      const coverUrl = b.coverUrl || "thumbnail.png";
+
+      const div = document.createElement("div");
+      div.className = "book";
+      div.innerHTML = `
+        <img src="${coverUrl}" alt="Cover von ${b.Titel || "Unbekannt"}" />
+        <div class="book-details">
+          <div class="book-header">
+            <div class="book-title">${b.Titel || "Ohne Titel"}</div>
+            <div class="book-signature">${b.Signatur || "-"}</div>
+          </div>
+          <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+          <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|<span id="meta-span"></span>&nbsp; ISBN: ${isbnRaw || "-"}</div>
+        </div>
+      `;
+
+      container.appendChild(div);
+    }
+  }
+
+  const lightboxOverlay = document.getElementById("lightbox-overlay");
+  const lightboxImage = lightboxOverlay.querySelector("img");
+
+  document.getElementById("book-list").addEventListener("click", (e) => {
+    if (e.target.tagName === "IMG" && e.target.parentElement.classList.contains("book")) {
+      lightboxImage.src = e.target.src;
+      lightboxOverlay.style.display = "flex";
+    }
+  });
+
+  lightboxOverlay.addEventListener("click", () => {
+    lightboxOverlay.style.display = "none";
+    lightboxImage.src = "";
+  });
+
+  ladeMedien();
+</script>
+
+</body>
+</html>
