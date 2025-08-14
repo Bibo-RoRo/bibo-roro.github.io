@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" /> 
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Bibokatalog RoRo</title>
@@ -132,6 +132,7 @@
       border-radius: 6px;
       object-fit: contain;
     }
+    
   .book-info {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -171,23 +172,67 @@
         color: inherit;
     }
     
+    footer hr {
+        width: 30%;
+    }
+    
     @media (max-width: 768px) {
         body {
             max-width: 300px;
-            background-color: red !important;
+            
         }
 
         #lightbox-content {
-          flex-direction: column;
-          align-items: center;
+            flex-direction: column;
+            align-items: center;
         }
 
         #lightbox-content img {
-          max-width: 100%;
+            max-width: 100%;
+        }
+        
+        .search-cover {
+            height: 400px !important;
+            width: auto;
+        }
+        
+        .book-details {
+            height: 100px;
+            position: relative;
+        }
+        
+        .book-meta {
+            position: absolute;
+            bottom: 0px;          
+        }
+        
+        .book-signature {
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         .book-info {
-          grid-template-columns: 1fr;
+            grid-template-columns: auto 1fr;
+            gap: 0 0.5rem;
+        }
+        
+        .logo {
+            margin-top: -250px;
+            margin-left: 28%;
+        }
+        
+        .header-div {
+            margin-top: 40%;
+        }
+        
+        .bibo-h3 {
+            margin-left: 20px;
+            margin-top: -12px;
+        }
+        
+        footer hr {
+            width: 50%;
+            margin-top: 40%;
         }
     }    
   </style>
@@ -207,7 +252,7 @@
   </div>
 
   <footer>
-       <hr size="2" noshade style="width: 30%;">
+       <hr size="2" noshade>
        <p class="impressum"><a href="impressum.html">Impressum</a></p>
   </footer>
 
@@ -286,7 +331,7 @@ function renderListeOhneCover(liste, container) {
           </div>
           <div class="book-signature">${b.Signatur || "-"}</div>
         </div>
-        <div class="book-meta">MeNummer: ${b.Nummer || "-"} | ISBN: ${(b.ISBN || b.isbn || "-")}</div>
+        <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
       </div>
     `;
     div.addEventListener("click", () => zeigeLightbox(b));
@@ -294,66 +339,69 @@ function renderListeOhneCover(liste, container) {
   }
 }
 
-  async function holeCoverURL(isbn) {
-    if (!isbn) return "thumbnail.png";
-    const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+async function holeCoverURL(isbn) {
+  if (!isbn) return { url: "thumbnail.png", source: "Keine Quelle" };
+  const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
 
-    async function pruefeBild(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img.width > 50 && img.height > 50);
-        img.onerror = () => resolve(false);
-        img.src = url;
-      });
-    }
-
-    if (await pruefeBild(olUrlLarge)) return olUrlLarge;
-
-    try {
-      const googleRes = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
-      );
-      const googleData = await googleRes.json();
-      const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
-      if (imgLinks?.thumbnail) {
-        return imgLinks.thumbnail.replace("http:", "https:");
-      }
-    } catch {}
-
-    const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-    if (await pruefeBild(olUrlMedium)) return olUrlMedium;
-
-    return "thumbnail.png";
+  async function pruefeBild(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img.width > 50 && img.height > 50);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
   }
 
-  async function zeigeLightbox(buch) {
-    const overlay = document.getElementById("lightbox-overlay");
-    const content = document.getElementById("lightbox-content");
+  if (await pruefeBild(olUrlLarge)) return { url: olUrlLarge, source: "OpenLibrary" };
 
-    let coverHtml = "";
-    const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
-    if (isbnRaw) {
-      const isbn = isbnRaw.replace(/-/g, "");
-      const coverUrl = await holeCoverURL(isbn);
-      coverHtml = `<img src="${coverUrl}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
-    } else {
-      coverHtml = `<img src="thumbnail.png" alt="Kein Cover verfügbar" />`;
+  try {
+    const googleRes = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
+    );
+    const googleData = await googleRes.json();
+    const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
+    if (imgLinks?.thumbnail) {
+      return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
     }
+  } catch {}
 
-    content.innerHTML = `
-      ${coverHtml}
-      <div class="book-info">
-        <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
-        <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
-        <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
-        <div></div><div></div>
-        <div></div><div></div>
-        <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
-        <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
-      </div>
-    `;
-    overlay.style.display = "flex";
+  const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+  if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
+
+  return { url: "thumbnail.png", source: "Keine Quelle" };
+}
+
+async function zeigeLightbox(buch) {
+  const overlay = document.getElementById("lightbox-overlay");
+  const content = document.getElementById("lightbox-content");
+
+  let coverHtml = "";
+  let quelle = "Keine Quelle";
+  const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
+  if (isbnRaw) {
+    const isbn = isbnRaw.replace(/-/g, "");
+    const { url, source } = await holeCoverURL(isbn);
+    coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
+    quelle = source;
+  } else {
+    coverHtml = `<img src="thumbnail.png" alt="Kein Cover verfügbar" />`;
   }
+
+  content.innerHTML = `
+    ${coverHtml}
+    <div class="book-info">
+      <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
+      <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
+      <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
+      <div></div><div></div>
+      <div></div><div></div>
+      <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
+      <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
+    </div>
+    <!--<div class="quelle-tag">${quelle}</div>-->
+  `;
+  overlay.style.display = "flex";
+}
 
   document.getElementById("lightbox-overlay").addEventListener("click", function(e) {
     if (e.target.id === "lightbox-overlay") {
@@ -365,6 +413,3 @@ function renderListeOhneCover(liste, container) {
 </script>
 </body>
 </html>
-
-
-
