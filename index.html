@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -136,9 +137,9 @@
   .book-info {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 0 1rem;            /* kein vertikaler Abstand, nur horizontal */
-    max-height: 150px;      /* maximale Höhe für viele Einträge */
-    overflow-y: auto;       /* Scrollen bei Überlänge */
+    gap: 0 1rem;
+    max-height: 180px;
+    overflow-y: auto;
   }
 
   .book-info div {
@@ -378,11 +379,19 @@ async function zeigeLightbox(buch) {
   let coverHtml = "";
   let quelle = "Keine Quelle";
   const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
+
   if (isbnRaw) {
     const isbn = isbnRaw.replace(/-/g, "");
     const { url, source } = await holeCoverURL(isbn);
     coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
-    quelle = source;
+
+    if (source === "OpenLibrary") {
+      quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
+    } else if (source === "Google Books") {
+      quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
+    } else {
+      quelle = "-";
+    }
   } else {
     coverHtml = `<img src="thumbnail.png" alt="Kein Cover verfügbar" />`;
   }
@@ -397,8 +406,10 @@ async function zeigeLightbox(buch) {
       <div></div><div></div>
       <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
       <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
+      <div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div>
+      <div class="label">Covereintrag:</div><div>${quelle}</div>
     </div>
-    <!--<div class="quelle-tag">${quelle}</div>-->
   `;
   overlay.style.display = "flex";
 }
