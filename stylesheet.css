@@ -1,0 +1,240 @@
+body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 1rem;
+      background: #EADDCA;
+    }
+
+    h1 {
+      margin: 0;
+      text-align: center;    
+    }
+
+    .header-div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .bibo-h3 {
+      font-weight: bold;
+      margin-left: 25%;
+      margin-top: 7%;
+    }
+
+    #search {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      margin-top: 3%;
+    }
+
+    .toggleTrigger img {
+      width: 8%;
+      margin-left: 89.3%
+    }
+
+    #auswahl-info {
+      margin-top: 8%;
+      margin-left: 3%;
+      font-size: 20px;
+    }
+
+    .book {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      background: white;
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .book:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .book-details {
+      flex-grow: 1;
+      margin-left: 5px;
+    }
+
+    .book-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .book-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .book-author {
+      color: #555;
+      font-size: 0.95rem;
+      margin: 0;
+      margin-top: 5px;
+    }
+
+    .book-signature {
+      font-weight: bold;
+      font-size: 40px;
+      color: #666;
+      margin-right: 20px;
+    }
+
+    .book-meta {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 5%;
+    }
+
+    #lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      cursor: pointer;
+    }
+
+    #lightbox-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 700px;
+      display: flex;
+      gap: 20px;
+      cursor: default;
+    }
+
+    #lightbox-content img {
+      max-width: 200px;
+      height: auto;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+    
+    .book-info {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0 1rem;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .book-info div {
+      margin: 0;
+      padding: 0;
+      line-height: 1.2;
+    }
+
+    .book-info .label {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .book-info .label {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .logo {
+        width: 150px;
+        margin-top: 10px;
+    }
+    
+    footer {
+        text-align: center;
+        margin-top: 10%;
+    }
+
+    footer a {
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    footer hr {
+        width: 30%;
+    }
+    
+    @media (max-width: 768px) {
+        body {
+            max-width: 300px;
+            
+        }
+
+        #lightbox-content {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #lightbox-content img {
+            max-width: 100%;
+        }
+        
+        .search-cover {
+            height: 400px !important;
+            width: auto;
+        }
+        
+        .book-details {
+            height: 100px;
+            position: relative;
+        }
+        
+        .book-meta {
+            position: absolute;
+            bottom: 0px;          
+        }
+        
+        .book-signature {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .book-info {
+            grid-template-columns: auto 1fr;
+            gap: 0 0.5rem;
+        }
+        
+        .logo {
+            margin-top: -250px;
+            margin-left: 28%;
+        }
+        
+        .header-div {
+            margin-top: 40%;
+        }
+        
+        .bibo-h3 {
+            margin-left: 20px;
+            margin-top: -12px;
+        }
+        
+        footer hr {
+            width: 50%;
+            margin-top: 40%;
+        }
+        
+        .toggleTrigger img {
+            width: 40px;
+            height: auto;
+            margin-left: 76%;
+        }
+    }
