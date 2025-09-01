@@ -1,252 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <title>Bibokatalog RoRo</title>
+  <meta name="author" content="&Eacute;mile Jeremias Ruff">
+  <link rel="icon" type="image/png" href="favicon.ico">
+
+  <link rel="stylesheet" href="stylesheet.css" type="text/css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Bibokatalog RoRo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 1rem;
-      background: #EADDCA;
-    }
 
-    h1 {
-      margin: 0;
-      text-align: center;    
-    }
-
-    .header-div {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .bibo-h3 {
-      font-weight: bold;
-      margin-left: 25%;
-      margin-top: 7%;
-    }
-
-    #search {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      margin-top: 3%;
-    }
-
-    .toggleTrigger img {
-      width: 8%;
-      margin-left: 89.3%
-    }
-
-    #auswahl-info {
-      margin-top: 8%;
-      margin-left: 3%;
-      font-size: 20px;
-    }
-
-    .book {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      background: white;
-      padding: 0.8rem;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .book:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .book-details {
-      flex-grow: 1;
-      margin-left: 5px;
-    }
-
-    .book-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .book-title {
-      font-weight: bold;
-      font-size: 1.1rem;
-      margin-bottom: 0.1rem;
-    }
-
-    .book-author {
-      color: #555;
-      font-size: 0.95rem;
-      margin: 0;
-      margin-top: 5px;
-    }
-
-    .book-signature {
-      font-weight: bold;
-      font-size: 40px;
-      color: #666;
-      margin-right: 20px;
-    }
-
-    .book-meta {
-      font-size: 0.85rem;
-      color: #888;
-      margin-top: 5%;
-    }
-
-    #lightbox-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      cursor: pointer;
-    }
-
-    #lightbox-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 700px;
-      display: flex;
-      gap: 20px;
-      cursor: default;
-    }
-
-    #lightbox-content img {
-      max-width: 200px;
-      height: auto;
-      border-radius: 6px;
-      object-fit: contain;
-    }
-    
-  .book-info {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0 1rem;
-    max-height: 180px;
-    overflow-y: auto;
-  }
-
-  .book-info div {
-    margin: 0;
-    padding: 0;
-    line-height: 1.2;
-  }
-
-  .book-info .label {
-    font-weight: bold;
-    white-space: nowrap;
-  }
-
-    .book-info .label {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .logo {
-        width: 150px;
-        margin-top: 10px;
-    }
-    
-    footer {
-        text-align: center;
-        margin-top: 10%;
-    }
-
-    footer a {
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    footer hr {
-        width: 30%;
-    }
-    
-    @media (max-width: 768px) {
-        body {
-            max-width: 300px;
-            
-        }
-
-        #lightbox-content {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #lightbox-content img {
-            max-width: 100%;
-        }
-        
-        .search-cover {
-            height: 400px !important;
-            width: auto;
-        }
-        
-        .book-details {
-            height: 100px;
-            position: relative;
-        }
-        
-        .book-meta {
-            position: absolute;
-            bottom: 0px;          
-        }
-        
-        .book-signature {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .book-info {
-            grid-template-columns: auto 1fr;
-            gap: 0 0.5rem;
-        }
-        
-        .logo {
-            margin-top: -250px;
-            margin-left: 28%;
-        }
-        
-        .header-div {
-            margin-top: 40%;
-        }
-        
-        .bibo-h3 {
-            margin-left: 20px;
-            margin-top: -12px;
-        }
-        
-        footer hr {
-            width: 50%;
-            margin-top: 40%;
-        }
-        
-        .toggleTrigger img {
-            width: 40px;
-            height: auto;
-            margin-left: 76%;
-        }
-    }    
-  </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -257,7 +19,7 @@
   <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
   <p id="auswahl-info">- Neuanschaffungen -</p>
   
-  <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="map.png" alt="Signaturen-Karte öffnen"></div>
+  <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="map.png" alt="Signaturen-Karte Ã¶ffnen"></div>
   <div class="toggleContent" style="width: 100%;"><div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;"><iframe title="R 11" frameborder="0" width="1200" height="675" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://view.genially.com/689f9400c4eaa41076ba302f" type="text/html" allowscriptaccess="always" allowfullscreen="true" scrolling="yes" allownetworking="all"></iframe> </div> </div>  
 
   <div id="book-list"></div>
@@ -331,102 +93,102 @@
     });
   }
 
-function renderListeOhneCover(liste, container) {
-  container.innerHTML = "";
-  for (const b of liste) {
-    const div = document.createElement("div");
-    div.className = "book";
-    div.dataset.details = JSON.stringify(b);
-    div.innerHTML = `
-      <div class="book-details">
-        <div class="book-header">
-          <div>
-            <div class="book-title">${b.Titel || "Ohne Titel"}</div>
-            <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+  function renderListeOhneCover(liste, container) {
+    container.innerHTML = "";
+    for (const b of liste) {
+      const div = document.createElement("div");
+      div.className = "book";
+      div.dataset.details = JSON.stringify(b);
+      div.innerHTML = `
+        <div class="book-details">
+          <div class="book-header">
+            <div>
+              <div class="book-title">${b.Titel || "Ohne Titel"}</div>
+              <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+            </div>
+            <div class="book-signature">${b.Signatur || "-"}</div>
           </div>
-          <div class="book-signature">${b.Signatur || "-"}</div>
+          <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
         </div>
-        <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
+      `;
+      div.addEventListener("click", () => zeigeLightbox(b));
+      container.appendChild(div);
+    }
+  }
+
+  async function holeCoverURL(isbn) {
+    if (!isbn) return { url: "thumbnail.png", source: "Keine Quelle" };
+    const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+
+    async function pruefeBild(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img.width > 50 && img.height > 50);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    if (await pruefeBild(olUrlLarge)) return { url: olUrlLarge, source: "OpenLibrary" };
+
+    try {
+      const googleRes = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
+      );
+      const googleData = await googleRes.json();
+      const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
+      if (imgLinks?.thumbnail) {
+        return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
+      }
+    } catch {}
+
+    const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+    if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
+
+    return { url: "thumbnail.png", source: "Keine Quelle" };
+  }
+
+  async function zeigeLightbox(buch) {
+    const overlay = document.getElementById("lightbox-overlay");
+    const content = document.getElementById("lightbox-content");
+
+    let coverHtml = "";
+    let quelle = "Keine Quelle";
+    const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
+
+    if (isbnRaw) {
+      const isbn = isbnRaw.replace(/-/g, "");
+      const { url, source } = await holeCoverURL(isbn);
+      coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
+
+      if (source === "OpenLibrary") {
+        quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
+      } else if (source === "Google Books") {
+        quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
+      } else {
+        quelle = "-";
+      }
+    } else {
+      coverHtml = `<img src="thumbnail.png" alt="Kein Cover verfÃ¼gbar" />`;
+    }
+
+    content.innerHTML = `
+      ${coverHtml}
+      <div class="book-info">
+        <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
+        <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
+        <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
+        <div></div><div></div>
+        <div></div><div></div>
+        <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
+        <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
+        <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
+        <div class="label">Covereintrag:</div><div>${quelle}</div>
       </div>
     `;
-    div.addEventListener("click", () => zeigeLightbox(b));
-    container.appendChild(div);
+    overlay.style.display = "flex";
   }
-}
-
-async function holeCoverURL(isbn) {
-  if (!isbn) return { url: "thumbnail.png", source: "Keine Quelle" };
-  const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-
-  async function pruefeBild(url) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(img.width > 50 && img.height > 50);
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
-  }
-
-  if (await pruefeBild(olUrlLarge)) return { url: olUrlLarge, source: "OpenLibrary" };
-
-  try {
-    const googleRes = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
-    );
-    const googleData = await googleRes.json();
-    const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
-    if (imgLinks?.thumbnail) {
-      return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
-    }
-  } catch {}
-
-  const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-  if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
-
-  return { url: "thumbnail.png", source: "Keine Quelle" };
-}
-
-async function zeigeLightbox(buch) {
-  const overlay = document.getElementById("lightbox-overlay");
-  const content = document.getElementById("lightbox-content");
-
-  let coverHtml = "";
-  let quelle = "Keine Quelle";
-  const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
-
-  if (isbnRaw) {
-    const isbn = isbnRaw.replace(/-/g, "");
-    const { url, source } = await holeCoverURL(isbn);
-    coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
-
-    if (source === "OpenLibrary") {
-      quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
-    } else if (source === "Google Books") {
-      quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
-    } else {
-      quelle = "-";
-    }
-  } else {
-    coverHtml = `<img src="thumbnail.png" alt="Kein Cover verfügbar" />`;
-  }
-
-  content.innerHTML = `
-    ${coverHtml}
-    <div class="book-info">
-      <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
-      <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
-      <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
-      <div></div><div></div>
-      <div></div><div></div>
-      <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
-      <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
-      <div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div>
-      <div class="label">Covereintrag:</div><div>${quelle}</div>
-    </div>
-  `;
-  overlay.style.display = "flex";
-}
 
   document.getElementById("lightbox-overlay").addEventListener("click", function(e) {
     if (e.target.id === "lightbox-overlay") {
@@ -436,8 +198,8 @@ async function zeigeLightbox(buch) {
 
   ladeMedien();
 </script>
+
 <script>
-// Toggle
 document.addEventListener('DOMContentLoaded', () => {
   const triggers = document.querySelectorAll('.toggleTrigger');
 
@@ -476,5 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 </body>
 </html>
