@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>CSV zu JSON & Upload nach Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 1rem; }
+    input, button { margin-bottom: 0.5rem; display: block; }
+    textarea { width: 100%; height: 150px; font-family: monospace; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h2>CSV → JSON → Supabase</h2>
+
+  <h3>Login</h3>
+  <!-- E-Mail Feld entfernt -->
+  <input type="password" id="password" placeholder="Passwort">
+  <button id="loginBtn">Login</button>
+  <p id="loginStatus"></p>
+
+  <div id="uploadSection" class="hidden">
+    <h3>CSV hochladen</h3>
+    <input type="file" id="csvFile" accept=".txt">
+    <button id="uploadBtn">Konvertieren & Hochladen</button>
+    <p id="uploadStatus"></p>
+    <h3>JSON Vorschau:</h3>
+    <textarea id="jsonPreview" readonly></textarea>
+  </div>
+
+<script>
+    const supabase = window.supabase.createClient(
+      "https://euuptkidjsquvhohvicv.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4"
+    );
+
+    function parseCSV(text) {
+      const rows = [];
+      const lines = text.trim().split('\n');
+      for (let line of lines) {
+        const result = [];
+        let value = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              value += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            result.push(value);
+            value = '';
+          } else {
+            value += char;
+          }
+        }
+        result.push(value);
+        rows.push(result);
+      }
+      return rows;
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = "test@example.com"; // Feste E-Mail-Adresse
+      const password = document.getElementById("password").value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        document.getElementById("loginStatus").textContent = "Login fehlgeschlagen: " + error.message;
+      } else {
+        document.getElementById("loginStatus").textContent = "Login erfolgreich!";
+        document.getElementById("uploadSection").classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const fileInput = document.getElementById("csvFile");
+      if (!fileInput.files.length) {
+        alert("Bitte eine CSV-Datei auswählen!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const text = await file.text();
+      const rows = parseCSV(text);
+      const headers = rows[0];
+      const jsonData = rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((key, i) => obj[key.trim()] = row[i]?.trim() ?? "");
+        return obj;
+      });
+
+      const jsonLines = jsonData.map(obj => JSON.stringify(obj));
+      const jsonString = '[\n' + jsonLines.join(',\n') + '\n]';
+
+      document.getElementById("jsonPreview").value = jsonString;
+
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const { error } = await supabase.storage
+        .from("medien")
+        .upload("medien-konvertiert.json", blob, { upsert: true });
+
+      if (error) {
+        document.getElementById("uploadStatus").textContent = "Fehler beim Hochladen: " + error.message;
+      } else {
+        document.getElementById("uploadStatus").textContent = "Upload erfolgreich!";
+      }
+    });
+</script>
+</body>
+</html>
