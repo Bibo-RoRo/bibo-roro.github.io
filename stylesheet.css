@@ -79,6 +79,7 @@
     .book-details {
       flex-grow: 1;
       margin-left: 5px;
+      color: black;
     }
 
     .book-header {
@@ -257,3 +258,4 @@
             margin-left: 76%;
         }
     }
+
