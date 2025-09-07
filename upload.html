@@ -1,114 +1,493 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>CSV zu JSON & Upload nach Supabase</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 1rem; }
-    input, button { margin-bottom: 0.5rem; display: block; }
-    textarea { width: 100%; height: 150px; font-family: monospace; }
-    .hidden { display: none; }
-  </style>
+    <title>Bibo RoRo  |  Aktualisierung</title>
+    <meta name="author" content="Émile Jeremias Ruff"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <link rel="icon" type="image/png" href="../favicon.ico">
+    <link rel="stylesheet" href="stylesheet.css" type="text/css">
+    <meta charset="UTF-8">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <h2>CSV → JSON → Supabase</h2>
 
-  <h3>Login</h3>
-  <!-- E-Mail Feld entfernt -->
-  <input type="password" id="password" placeholder="Passwort">
-  <button id="loginBtn">Login</button>
-  <p id="loginStatus"></p>
+<body id="upload">
+  <!-- Login-Form -->
+  <form id="login-form">
+    <h2>Bibokatalogs-Zugang 🔐</h2>
+    <div><input type="password" id="password" placeholder="Passwort" required />
+         <img id="togglePassword" src="unsichtbar.png" alt="Toggle Password" />
+         <button class="login-btn" type="submit">&#x2713;</button></div>
+    <p>Wie gelange ich an das Passwort?<br>Jeremias fragen (<a href="kontakt.html" alt="Kontaktformular">Kontaktformular</a>)</p>
+  </form>
 
-  <div id="uploadSection" class="hidden">
-    <h3>CSV hochladen</h3>
-    <input type="file" id="csvFile" accept=".txt">
-    <button id="uploadBtn">Konvertieren & Hochladen</button>
-    <p id="uploadStatus"></p>
-    <h3>JSON Vorschau:</h3>
-    <textarea id="jsonPreview" readonly></textarea>
+  <!-- CSV Uploads -->
+  <div id="uploadContainer" class="hidden">
+    <h1>Des RoRo Bibo-Katalog aktualisieren</h1>
+    <label class="json-checkbox"><input type="checkbox" id="toggleAllPreviews">JSON Preview</label><br>
+      
+    <div id="uploadSection1" class="upload-section">
+      <div><h3>ps-biblio (csv)</h3>
+           <label for="csvFile1" class="file-label"><input type="file" id="csvFile1" accept=".csv, .json" hidden><span id="fileLabel1">Datei wählen</span></label>
+           <button id="uploadBtn1" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button></div>
+      <p id="uploadStatus1" class="upload-status"></p>
+      <textarea id="jsonPreview1" class="previewTextarea" style="display: none;" readonly></textarea>
+    </div>
+
+    <div id="uploadSection2" class="upload-section">
+      <div><h3>library (json)</h3>
+           <label for="csvFile2" class="file-label"><input type="file" id="csvFile2" accept=".csv, .json" hidden><span id="fileLabel2">Datei wählen</span></label>
+           <button id="uploadBtn2" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button></div>
+      <p id="uploadStatus2" class="upload-status"></p>
+    </div>
+
+    <div id="uploadSection3" class="upload-section">
+      <h3>Startseitenauswahl</h3>
+
+      <!-- Datei-Upload -->
+      <div>
+        <label for="csvFile3" class="file-label"><input type="file" id="csvFile3" accept=".csv, .json" hidden><span id="fileLabel3">optional: Datei wählen</span></label>
+        <button id="uploadBtn3" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button>
+      </div>
+
+      <!-- Suche -->
+      <div class="auswahl-suche">
+        <input type="text" id="searchInput" placeholder="Autor oder Titel eingeben..." />
+        <button id="searchBtn"><img alt="Suchen" title="Suchen" src="search.png"></button>
+
+        <input type="text" id="isbnInput" placeholder="ISBN eingeben..." />
+        <button id="searchIsbnBtn"><img alt="Suchen" title="Suchen" src="search.png"></button>
+      </div>
+
+      <p>Suchergebnisse:</p>
+      <table id="searchResults"></table>
+
+      <p>Ausgewählte Bücher:</p>
+      <ul id="selectedBooks"></ul>
+
+      <button id="generateJsonBtn"><span>Formatieren & Aktualisieren</span> <img alt="Hochladen & Aktualisiseren" src="upload.png"></button>
+      <textarea id="jsonPreview3" class="previewTextarea" style="display: none;" readonly></textarea>
+      <p id="uploadStatus3" class="upload-status"></p> 
+    </div>
+
+
+    <button id="logoutBtn">Logout</button>
   </div>
 
 <script>
-    const supabase = window.supabase.createClient(
-      "https://euuptkidjsquvhohvicv.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4"
-    );
-
-    function parseCSV(text) {
-      const rows = [];
-      const lines = text.trim().split('\n');
-      for (let line of lines) {
-        const result = [];
-        let value = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              value += '"';
-              i++;
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === ',' && !inQuotes) {
-            result.push(value);
-            value = '';
-          } else {
-            value += char;
-          }
-        }
-        result.push(value);
-        rows.push(result);
+  const supabase = window.supabase.createClient(
+    "https://euuptkidjsquvhohvicv.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4",
+    {
+      auth: {
+        persistSession: true, 
+        storage: sessionStorage
       }
-      return rows;
+    }
+  );
+
+  function parseCSV(text) {
+    const rows = [];
+    const lines = text.trim().split('\n');
+    for (let line of lines) {
+      const result = [];
+      let value = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            value += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(value);
+          value = '';
+        } else {
+          value += char;
+        }
+      }
+      result.push(value);
+      rows.push(result);
+    }
+    return rows;
+  }
+
+  async function handleSmartUpload(fileInputId, jsonPreviewId, uploadStatusId, storageFilename) {
+    const fileInput = document.getElementById(fileInputId);
+    const statusField = document.getElementById(uploadStatusId);
+    statusField.textContent = "";
+    statusField.className = "upload-status";
+
+    if (!fileInput.files.length) {
+      statusField.textContent = "❌ Bitte eine Datei auswählen!";
+      statusField.classList.add("status-error");
+      return;
     }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = "test@example.com"; // Feste E-Mail-Adresse
-      const password = document.getElementById("password").value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        document.getElementById("loginStatus").textContent = "Login fehlgeschlagen: " + error.message;
-      } else {
-        document.getElementById("loginStatus").textContent = "Login erfolgreich!";
-        document.getElementById("uploadSection").classList.remove("hidden");
-      }
-    });
+    const file = fileInput.files[0];
+    const fileName = file.name.toLowerCase();
+    statusField.textContent = `⏳ Lädt ${file.name} hoch...`;
+    statusField.classList.add("status-loading");
 
-    document.getElementById("uploadBtn").addEventListener("click", async () => {
-      const fileInput = document.getElementById("csvFile");
-      if (!fileInput.files.length) {
-        alert("Bitte eine CSV-Datei auswählen!");
+    let jsonString = "";
+
+    try {
+      if (fileName.endsWith(".csv")) {
+        const text = await file.text();
+        const rows = parseCSV(text);
+        const headers = rows[0];
+        const jsonData = rows.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((key, i) => obj[key.trim()] = row[i]?.trim() ?? "");
+          return obj;
+        });
+        jsonString = JSON.stringify(jsonData, null, 2);
+      } else if (fileName.endsWith(".json")) {
+        jsonString = await file.text();
+      } else {
+        statusField.textContent = "❌ Ungültiger Dateityp. Bitte .csv oder .json hochladen.";
+        statusField.classList.add("status-error");
         return;
       }
 
-      const file = fileInput.files[0];
-      const text = await file.text();
-      const rows = parseCSV(text);
-      const headers = rows[0];
-      const jsonData = rows.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((key, i) => obj[key.trim()] = row[i]?.trim() ?? "");
-        return obj;
-      });
-
-      const jsonLines = jsonData.map(obj => JSON.stringify(obj));
-      const jsonString = '[\n' + jsonLines.join(',\n') + '\n]';
-
-      document.getElementById("jsonPreview").value = jsonString;
+      document.getElementById(jsonPreviewId).value = jsonString;
 
       const blob = new Blob([jsonString], { type: "application/json" });
       const { error } = await supabase.storage
         .from("medien")
-        .upload("medien-konvertiert.json", blob, { upsert: true });
+        .upload(storageFilename, blob, { upsert: true });
 
       if (error) {
-        document.getElementById("uploadStatus").textContent = "Fehler beim Hochladen: " + error.message;
+        statusField.textContent = "❌ Fehler beim Hochladen: " + error.message;
+        statusField.classList.remove("status-loading");
+        statusField.classList.add("status-error");
       } else {
-        document.getElementById("uploadStatus").textContent = "Upload erfolgreich!";
+        statusField.textContent = "✅ Upload erfolgreich!";
+        statusField.classList.remove("status-loading");
+        statusField.classList.add("status-success");
       }
+    } catch (err) {
+      statusField.textContent = "❌ Fehler: " + err.message;
+      statusField.classList.remove("status-loading");
+      statusField.classList.add("status-error");
+    }
+  }
+
+  async function handleDirectUpload(fileInputId, uploadStatusId, storageFilename) {
+    const fileInput = document.getElementById(fileInputId);
+    const statusField = document.getElementById(uploadStatusId);
+    statusField.textContent = "";
+    statusField.className = "upload-status";
+
+    if (!fileInput.files.length) {
+      statusField.textContent = "❌ Bitte eine Datei auswählen!";
+      statusField.classList.add("status-error");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    statusField.textContent = `⏳ Lädt ${file.name} hoch...`;
+    statusField.classList.add("status-loading");
+
+    const { error } = await supabase.storage
+      .from("medien")
+      .upload(storageFilename, file, { upsert: true });
+
+    if (error) {
+      statusField.textContent = "❌ Fehler beim Hochladen: " + error.message;
+      statusField.classList.add("status-error");
+    } else {
+      statusField.textContent = "✅ Upload erfolgreich!";
+      statusField.classList.add("status-success");
+    }
+  }
+
+const selectedBooks = [];
+
+function uniqueByISBN(arr) {
+  const seen = new Set();
+  return arr.filter((item) => {
+    const rawIsbn = (item.ISBN || item.isbn || "").trim();
+    if (!rawIsbn) return true; // Behalte Einträge ohne ISBN
+    const isbn = rawIsbn.replace(/-/g, "");
+    if (seen.has(isbn)) return false;
+    seen.add(isbn);
+    return true;
+  });
+}
+
+// Section 3
+const digitsOnly = str => (str || "").replace(/\D/g, '');
+
+// Suche nach Autor/Titel
+async function searchBooks() {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const resultsContainer = document.getElementById("searchResults");
+  resultsContainer.innerHTML = ""; // vorherige Ergebnisse löschen
+  if (!query) return;
+
+  const { data: medienData, error: fetchError } = await supabase.storage
+    .from("medien")
+    .download("medien.json");
+
+  if (fetchError) {
+    alert("Fehler beim Laden von medien.json: " + fetchError.message);
+    return;
+  }
+
+  const text = await medienData.text();
+  const regex = /\{[^}]*"ISBN"\s*:\s*"([^"]+)"[^}]*\}/g;
+  let match;
+  const results = [];
+
+  while ((match = regex.exec(text)) !== null) {
+    const obj = JSON.parse(match[0]);
+    if (
+      (obj.Titel && obj.Titel.toLowerCase().includes(query)) ||
+      (obj.Autor && obj.Autor.toLowerCase().includes(query))
+    ) {
+      results.push(obj);
+    }
+  }
+
+  const uniqueResults = uniqueByISBN(results);
+
+  if (uniqueResults.length === 0) {
+    resultsContainer.innerHTML = "<tr><td colspan='2'>Keine Treffer</td></tr>";
+    return;
+  }
+
+  uniqueResults.forEach(book => {
+    const tr = document.createElement("tr");
+    const tdTitel = document.createElement("td");
+    tdTitel.textContent = book.Titel;
+    tr.appendChild(tdTitel);
+
+    const tdAutor = document.createElement("td");
+    tdAutor.textContent = book.Autor;
+    tr.appendChild(tdAutor);
+
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => addBook(book));
+
+    resultsContainer.appendChild(tr);
+  });
+}
+
+// Suche nach ISBN
+async function searchByISBN() {
+  const query = document.getElementById("isbnInput").value.trim().replace(/\D/g, '');
+  const resultsContainer = document.getElementById("searchResults");
+  resultsContainer.innerHTML = "";
+  if (!query) return;
+
+  const { data: medienData, error: fetchError } = await supabase.storage
+    .from("medien")
+    .download("medien.json");
+
+  if (fetchError) {
+    alert("Fehler beim Laden von medien.json: " + fetchError.message);
+    return;
+  }
+
+  const text = await medienData.text();
+  const regex = /\{[^}]*"ISBN"\s*:\s*"([^"]+)"[^}]*\}/g;
+  let match;
+  const results = [];
+
+  while ((match = regex.exec(text)) !== null) {
+    const obj = JSON.parse(match[0]);
+    if (obj.ISBN && obj.ISBN.replace(/\D/g,'').includes(query)) {
+      results.push(obj);
+    }
+  }
+
+  if (results.length === 0) {
+    resultsContainer.innerHTML = "<tr><td colspan='2'>Keine Treffer</td></tr>";
+    return;
+  }
+
+  results.forEach(book => {
+    const tr = document.createElement("tr");
+
+    const tdTitel = document.createElement("td");
+    tdTitel.textContent = book.Titel;
+    tr.appendChild(tdTitel);
+
+    const tdAutor = document.createElement("td");
+    tdAutor.textContent = book.Autor;
+    tr.appendChild(tdAutor);
+
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => addBook(book));
+
+    resultsContainer.appendChild(tr);
+  });
+}
+
+// Event-Listener für die ISBN-Suche
+document.getElementById("searchIsbnBtn").addEventListener("click", searchByISBN);
+
+
+// Buch zur Auswahl hinzufügen
+function addBook(book) {
+  if (selectedBooks.some(b => b.ISBN === book.ISBN)) return;
+  selectedBooks.push(book);
+
+  const selectedContainer = document.getElementById("selectedBooks");
+  const li = document.createElement("li");
+  li.textContent = `${book.Titel} - ${book.Autor} [${book.ISBN}]`;
+  li.style.cursor = "pointer";
+  li.addEventListener("click", () => removeBook(book.ISBN, li));
+  selectedContainer.appendChild(li);
+}
+
+// Buch aus Auswahl entfernen
+function removeBook(isbn, liElement) {
+  const index = selectedBooks.findIndex(b => b.ISBN === isbn);
+  if (index > -1) selectedBooks.splice(index, 1);
+  liElement.remove();
+}
+
+// JSON generieren & hochladen
+async function generateJsonFromSelection() {
+  const statusField = document.getElementById("uploadStatus3");
+  const previewField = document.getElementById("jsonPreview3");
+  statusField.textContent = "";
+  statusField.className = "upload-status";
+
+  if (selectedBooks.length === 0) {
+    statusField.textContent = "❌ Keine Bücher ausgewählt!";
+    statusField.classList.add("status-error");
+    return;
+  }
+
+  let jsonString = selectedBooks.map(b => JSON.stringify(b)).join(",\n");
+  jsonString = "[\n" + jsonString + "\n]";
+  previewField.value = jsonString;
+
+  statusField.textContent = "⏳ Upload läuft...";
+  statusField.classList.add("status-loading");
+
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const { error: uploadError } = await supabase.storage
+    .from("medien")
+    .upload("auswahl.json", blob, { upsert: true });
+
+  if (uploadError) {
+    statusField.textContent = "❌ Fehler beim Hochladen: " + uploadError.message;
+    statusField.classList.remove("status-loading");
+    statusField.classList.add("status-error");
+  } else {
+    statusField.textContent = "✅ Upload & Aktualisierung erfolgreich";
+    statusField.classList.remove("status-loading");
+    statusField.classList.add("status-success");
+  }
+}
+
+// Event-Listener
+document.getElementById("searchBtn").addEventListener("click", searchBooks);
+document.getElementById("generateJsonBtn").addEventListener("click", generateJsonFromSelection);
+
+
+  // Button
+  document.getElementById("uploadBtn1").addEventListener("click", (e) => {
+    e.preventDefault();
+    handleSmartUpload("csvFile1", "jsonPreview1", "uploadStatus1", "medien.json");
+  });
+
+  document.getElementById("uploadBtn2").addEventListener("click", (e) => {
+    e.preventDefault();
+    handleDirectUpload("csvFile2", "uploadStatus2", "medien-library.json");
+  });
+
+  document.getElementById("uploadBtn3").addEventListener("click", (e) => {
+    e.preventDefault();
+    handleDirectUpload("csvFile3", "uploadStatus3", "auswahl.json");
+  });
+
+  // Datei-Namen anzeigen
+  document.getElementById("csvFile1").addEventListener("change", (e) => {
+    const fileName = e.target.files[0]?.name || "Datei wählen";
+    document.getElementById("fileLabel1").textContent = fileName;
+  });
+  document.getElementById("csvFile2").addEventListener("change", (e) => {
+    const fileName = e.target.files[0]?.name || "Datei wählen";
+    document.getElementById("fileLabel2").textContent = fileName;
+  });
+  document.getElementById("csvFile3").addEventListener("change", (e) => {
+    const fileName = e.target.files[0]?.name || "Datei wählen";
+    document.getElementById("fileLabel3").textContent = fileName;
+  });
+
+  // Login
+  const form = document.getElementById('login-form');
+  const uploadContainer = document.getElementById('uploadContainer');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const email = "bibo@example.com";
+
+  async function showUploadIfLoggedIn() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      form.style.display = 'none';
+      uploadContainer.classList.remove('hidden');
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return alert("Login fehlgeschlagen: " + error.message);
+
+    form.style.display = 'none';
+    uploadContainer.classList.remove('hidden');
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    uploadContainer.classList.add('hidden');
+    form.style.display = 'block';
+  });
+
+  // Passwort anzeigen/verstecken
+  const passwordInput = document.getElementById('password');
+  const togglePassword = document.getElementById('togglePassword');
+  togglePassword.addEventListener('click', () => {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    togglePassword.src = isPassword ? 'sichtbar.png' : 'unsichtbar.png';
+  });
+
+  // JSON-Preview
+  document.getElementById("toggleAllPreviews").addEventListener("change", function () {
+    const checked = this.checked;
+    document.querySelectorAll(".previewTextarea").forEach(textarea => {
+      textarea.style.display = checked ? "block" : "none";
     });
+  });
+
+  // Enter-Taste
+  document.getElementById("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchBooks();
+    }
+  });
+
+  document.getElementById("isbnInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchByISBN();
+    }
+  });
+
+  showUploadIfLoggedIn();
 </script>
+
 </body>
 </html>

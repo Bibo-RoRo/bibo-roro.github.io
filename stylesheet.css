@@ -1,263 +1,527 @@
-    :root {
-        --bildfarbe: white;
-        --txtfarbe: white;
-        --txtshadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+:root {
+    --bildfarbe: white;
+    --txtfarbe: white;
+    --txtshadow: 2px 2px 4px rgba(0, 0, 0, 1);
+}
+
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: auto;
+    padding: 1rem;
+    color: var(--txtfarbe);
+    background-image: url('bg.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: top;
+}
+
+
+h1 {
+    margin: 0;
+    text-align: center; 
+    color: var(--txtfarbe);
+}
+
+.header-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.bibo-h3 {
+    font-weight: bold;
+    margin-left: 25%;
+    margin-top: 7%;
+}
+
+#search {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    margin-top: 3%;
+    background: var(--bildfarbe);
+}
+
+.toggleTrigger img {
+    width: 8%;
+    margin-left: 89.3%;
+}
+
+#auswahl-info {
+    margin-top: 8%;
+    margin-left: 3%;
+    font-size: 20px;
+}
+
+.book {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--bildfarbe);
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    color: black;
+}
+
+.book:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.book-details {
+    flex-grow: 1;
+    margin-left: 5px;
+    color: black;
+}
+
+.book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.book-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.1rem;
+}
+
+.book-author {
+    color: #555;
+    font-size: 0.95rem;
+    margin: 0;
+    margin-top: 5px;
+}
+
+.book-signature {
+    font-weight: bold;
+    font-size: 40px;
+    color: #666;
+    margin-right: 20px;
+}
+
+.book-meta {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 5%;
+}
+
+#lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+#lightbox-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 700px;
+    display: flex;
+    gap: 20px;
+    cursor: default;
+}
+
+#lightbox-content img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.book-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 1rem;
+    max-height: 180px;
+    overflow-y: auto;
+    color: black;
+}
+
+.book-info div {
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.book-info .label {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.book-info .label {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.auswahl-info {
+    text-shadow: var(--txtshadow);
+}
+
+.logo {
+    width: 150px;
+    margin-top: 10px;
+}
+
+footer {
+    margin-left: 25%;
+    margin-top: 10%;
+    text-align: center;
+    text-shadow: var(--txtshadow);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    max-width: 45%;
+}
+
+footer p {
+    padding-top: -5px;
+    padding-bottom: 10px;
+}
+
+footer a {
+    text-decoration: none;
+    color: inherit;
+}
+
+footer hr {
+    width: 30%;
+}
+
+
+.kontakt {
+    color: black;
+}
+
+/* ==============
+       Upload
+   ============== */
+#upload {
+    font-family: sans-serif; 
+    max-width: 800px; 
+    margin: auto; 
+    padding: 1rem; 
+    background-color: #070f1b;
+    background-image: none;
+    color: white;
+}
+
+h1 {
+    margin-top: 5%;
+    margin-bottom: 10%;
+}
+
+input, button {
+    margin-bottom: 0.5rem; 
+    display: block; 
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: none;
+}
+
+textarea { 
+    width: 100%; 
+    height: 150px; 
+    font-family: monospace; 
+}
+
+.hidden { 
+    display: none; 
+}
+
+.upload-section { 
+    border: 1px solid white; 
+    padding: 1rem; 
+    margin-bottom: 1rem; 
+    margin-left: 50px;
+    max-width: 80%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    position: relative;
+}
+
+.upload-section div {
+    display: flex;
+}
+
+.upload-section button:not(#searchBtn):not(#searchIsbnBtn):not(#generateJsonBtn) {
+    background: transparent;
+    cursor: pointer;
+}
+
+.upload-section img {
+    width: 40px;
+    height: auto;
+}
+
+.upload-section input:not(#searchInput):not(#isbnInput):not(#togglePreview1):not(#togglePreview3) {
+    display: none;
+}
+
+label[for="csvFile1"], label[for="csvFile2"], label[for="csvFile3"] {
+    display: inline-block;
+    border: 1px dashed white;
+    padding: 0.4em 1.2em;
+    color: grey;
+    border-radius: 6px;
+    cursor: pointer;
+    max-width: 250px;
+    max-height: 20px;
+    margin-right: 60px;
+    margin-top: 10px;
+}
+
+label[for="csvFile1"]:hover, label[for="csvFile2"]:hover, label[for="csvFile3"]:hover {
+    border: 1px solid orange;
+}
+
+label[for="csvFile1"], 
+label[for="csvFile2"], 
+label[for="csvFile3"], 
+.upload-section button:not(#searchBtn):not(#searchIsbnBtn):not(#generateJsonBtn)  {
+    right: 20px;
+    top: 15px;
+    position: absolute;
+}
+
+.json-checkbox {
+    opacity: 0.2; 
+    display: flex;
+    margin-left: 65%;
+    margin-bottom: -15px;
+}
+
+/* Section-3 */
+    .auswahl-suche img {
+        width: 25px;
+        cursor: pointer;
     }
 
+    .auswahl-suche button {
+        background-color: transparent;
+    }
+
+    .auswahl-suche input {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .auswahl-suche input:nth-of-type(2) {
+        margin-left: 10%;
+    }
+
+    #searchResults td {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 8px; 
+      margin: 0;
+    }
+
+    #searchResults tr:hover {
+      background-color: rgba(255, 255, 255, 0.1); 
+    }
+
+    #generateJsonBtn {
+        border: 1px solid white;
+        background-color: transparent;
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    #generateJsonBtn img {
+        width: 25px;
+        height: auto;
+        margin-left: 6px;
+        margin-bottom: -8px;
+    }
+
+    #generateJsonBtn:hover {
+        border: 1px solid orange;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .upload-status {
+        margin-top: 0.5em;
+    }
+
+    .status-loading {color: goldenrod;}
+    .status-success {color: #04A441;}
+    .status-error {color: red;}
+/**/
+
+/* Login */
+    h2 {
+        color: white;
+        text-align: center;
+        margin-bottom: 15%;
+    }
+
+    #login-form {
+        margin-left: 20%;
+        margin-top: 20%;
+        max-width: 50%;
+    }
+
+    #login-form div {
+        padding: 15px;
+        display: flex;
+        border: 1px dashed white;
+        margin-top: -7%;
+        border-radius: 15px;
+        position: relative;
+    }
+
+    #login-form div:hover {
+        border: 1px solid orange;
+    }
+
+    #password {
+        background-color: transparent;
+        color: white;
+        border: none;
+        outline: none;
+        font-size: 20px;
+    }
+
+    #togglePassword {
+        position: absolute; 
+        right: 60px; 
+        top: 30px;
+        cursor: pointer; 
+        width: 24px;
+        opacity: 0.5;
+    }
+
+    .login-btn {
+        color: green;
+        font-size: 30px;
+        width: 10%;
+        background-color: transparent;
+        position: absolute;
+        right: 20px;
+        top: 10px;
+    }
+
+    #logoutBtn {
+        display: block;
+        position: absolute;
+        right: 50px;
+        top: 50px;
+        padding: 0.5rem 1rem;   
+        border: 1px solid white;  
+        border-radius: 6px;
+        background: red;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #logoutBtn:hover {
+        background: rgba(255, 75, 75, 1);
+        border: 1px dashed white;
+    }
+
+    #logoutBtn:focus {
+        border: 1px solid orange;
+    }
+
+    #login-form p {
+        bottom: 5%;
+        position: absolute;
+        color: rgba(255, 255, 255, 0.8);
+    } 
+
+    #login-form a {
+        font-style: italic;
+        color: inherit;
+    }
+/**/
+
+/* ==============
+       Mobil
+   ============== */
+@media (max-width: 768px) {
     body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 1rem;
-      color: var(--txtfarbe);
-      background-image: url('bg.png');
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-attachment: fixed;
-      background-position: top;
+        max-width: 300px;
+        background-image: url('bg-m.png');          
     }
 
-    h1 {
-      margin: 0;
-      text-align: center; 
-      color: var(--txtfarbe);
-    }
-
-    .header-div {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .bibo-h3 {
-      font-weight: bold;
-      margin-left: 25%;
-      margin-top: 7%;
-    }
-
-    #search {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      margin-top: 3%;
-      background: var(--bildfarbe);
-    }
-
-    .toggleTrigger img {
-      width: 8%;
-      margin-left: 89.3%
-    }
-
-    #auswahl-info {
-      margin-top: 8%;
-      margin-left: 3%;
-      font-size: 20px;
-    }
-
-    .book {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      background: var(--bildfarbe);
-      padding: 0.8rem;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      color: black;
-    }
-
-    .book:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .book-details {
-      flex-grow: 1;
-      margin-left: 5px;
-      color: black;
-    }
-
-    .book-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .book-title {
-      font-weight: bold;
-      font-size: 1.1rem;
-      margin-bottom: 0.1rem;
-    }
-
-    .book-author {
-      color: #555;
-      font-size: 0.95rem;
-      margin: 0;
-      margin-top: 5px;
-    }
-
-    .book-signature {
-      font-weight: bold;
-      font-size: 40px;
-      color: #666;
-      margin-right: 20px;
-    }
-
-    .book-meta {
-      font-size: 0.85rem;
-      color: #888;
-      margin-top: 5%;
-    }
-
-    #lightbox-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      cursor: pointer;
+    #uploadContainer {
+        width: 100vh !important;
     }
 
     #lightbox-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 700px;
-      display: flex;
-      gap: 20px;
-      cursor: default;
+        flex-direction: column;
+        align-items: center;
     }
 
     #lightbox-content img {
-      max-width: 200px;
-      height: auto;
-      border-radius: 6px;
-      object-fit: contain;
+        max-width: 100%;
     }
     
+    .search-cover {
+        height: 400px !important;
+        width: auto;
+    }
+    
+    .book-details {
+        height: 100px;
+        position: relative;
+    }
+    
+    .book-meta {
+        position: absolute;
+        bottom: 0px;          
+    }
+    
+    .book-signature {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
     .book-info {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0 1rem;
-      max-height: 180px;
-      overflow-y: auto;
-      color: black;
-    }
-
-    .book-info div {
-      margin: 0;
-      padding: 0;
-      line-height: 1.2;
-    }
-
-    .book-info .label {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .book-info .label {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .auswahl-info {
-      text-shadow: var(--txtshadow);
-    }
-
-    .logo {
-        width: 150px;
-        margin-top: 10px;
+        grid-template-columns: auto 1fr;
+        gap: 0 0.5rem;
     }
     
-    footer {
-        text-align: center;
-        margin-top: 10%;
-        text-shadow: var(--txtshadow);
+    .logo {
+        margin-top: -250px;
+        margin-left: 28%;
     }
-
-    footer a {
-        text-decoration: none;
-        color: inherit;
+    
+    .header-div {
+        margin-top: 40%;
+    }
+    
+    .bibo-h3 {
+        margin-left: 20px;
+        margin-top: -12px;
     }
     
     footer hr {
-        width: 30%;
+        width: 50%;
+        margin-top: 40%;
     }
     
-    @media (max-width: 768px) {
-        body {
-            max-width: 300px;
-            background-image: url('bg-m.png');          
-        }
-
-        #lightbox-content {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #lightbox-content img {
-            max-width: 100%;
-        }
-        
-        .search-cover {
-            height: 400px !important;
-            width: auto;
-        }
-        
-        .book-details {
-            height: 100px;
-            position: relative;
-        }
-        
-        .book-meta {
-            position: absolute;
-            bottom: 0px;          
-        }
-        
-        .book-signature {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .book-info {
-            grid-template-columns: auto 1fr;
-            gap: 0 0.5rem;
-        }
-        
-        .logo {
-            margin-top: -250px;
-            margin-left: 28%;
-        }
-        
-        .header-div {
-            margin-top: 40%;
-        }
-        
-        .bibo-h3 {
-            margin-left: 20px;
-            margin-top: -12px;
-        }
-        
-        footer hr {
-            width: 50%;
-            margin-top: 40%;
-        }
-        
-        .toggleTrigger img {
-            width: 40px;
-            height: auto;
-            margin-left: 76%;
-        }
+    .toggleTrigger img {
+        width: 40px;
+        height: auto;
+        margin-left: 76%;
     }
-
-
+}
