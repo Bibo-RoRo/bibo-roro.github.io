@@ -78,20 +78,22 @@
           const autor = (b.Autor || "").toLowerCase();
           return titel.includes(q) || autor.includes(q);
         });
-        gefiltert = uniqueByNummer(gefiltert);
+        gefiltert = uniqueByISBN(gefiltert);
         renderListeOhneCover(gefiltert, container);
       }
     });
   }
 
-  function uniqueByNummer(arr) {
-    const seen = new Set();
-    return arr.filter((item) => {
-      if (!item.Nummer) return true;
-      if (seen.has(item.Nummer)) return false;
-      seen.add(item.Nummer);
-      return true;
-    });
+  function uniqueByISBN(arr) {
+  const seen = new Set();
+  return arr.filter((item) => {
+    const rawIsbn = (item.ISBN || item.isbn || "").trim();
+    if (!rawIsbn) return true; // Behalte Einträge ohne ISBN
+    const isbn = rawIsbn.replace(/-/g, "");
+    if (seen.has(isbn)) return false;
+    seen.add(isbn);
+    return true;
+  });
   }
 
   function renderListeOhneCover(liste, container) {
@@ -242,3 +244,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
