@@ -115,67 +115,81 @@
     }
     return rows;
   }
+  
+async function handleSmartUpload(fileInputId, jsonPreviewId, uploadStatusId, storageFilename) {
+  const fileInput = document.getElementById(fileInputId);
+  const statusField = document.getElementById(uploadStatusId);
+  statusField.textContent = "";
+  statusField.className = "upload-status";
 
-  async function handleSmartUpload(fileInputId, jsonPreviewId, uploadStatusId, storageFilename) {
-    const fileInput = document.getElementById(fileInputId);
-    const statusField = document.getElementById(uploadStatusId);
-    statusField.textContent = "";
-    statusField.className = "upload-status";
+  if (!fileInput.files.length) {
+    statusField.textContent = "❌ Bitte eine Datei auswählen!";
+    statusField.classList.add("status-error");
+    return;
+  }
 
-    if (!fileInput.files.length) {
-      statusField.textContent = "❌ Bitte eine Datei auswählen!";
+  const file = fileInput.files[0];
+  const fileName = file.name.toLowerCase();
+  statusField.textContent = `⏳ Lädt ${file.name} hoch...`;
+  statusField.classList.add("status-loading");
+
+  let jsonString = "";
+
+  try {
+    if (fileName.endsWith(".csv")) {
+      let text = await file.text();
+
+      // Kopfzeile immer hinzufügen
+      text = '"Nummer","Signatur","Autor","Titel"\n' + text.trim();
+
+      // CSV parsen
+      const rows = parseCSV(text);
+      const headers = rows[0];
+      const jsonData = rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((key, i) => {
+          obj[key.trim()] = row[i]?.trim() ?? "";
+        });
+        return obj;
+      });
+
+      // JSON: eine Zeile pro Medium
+      jsonString = "[\n" + jsonData.map(obj => JSON.stringify(obj)).join(",\n") + "\n]";
+
+    } else if (fileName.endsWith(".json")) {
+      jsonString = await file.text();
+
+    } else {
+      statusField.textContent = "❌ Ungültiger Dateityp. Bitte .csv oder .json hochladen.";
       statusField.classList.add("status-error");
       return;
     }
 
-    const file = fileInput.files[0];
-    const fileName = file.name.toLowerCase();
-    statusField.textContent = `⏳ Lädt ${file.name} hoch...`;
-    statusField.classList.add("status-loading");
+    // JSON-Preview füllen
+    document.getElementById(jsonPreviewId).value = jsonString;
 
-    let jsonString = "";
+    // Upload zu Supabase
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const { error } = await supabase.storage
+      .from("medien")
+      .upload(storageFilename, blob, { upsert: true });
 
-    try {
-      if (fileName.endsWith(".csv")) {
-        const text = await file.text();
-        const rows = parseCSV(text);
-        const headers = rows[0];
-        const jsonData = rows.slice(1).map(row => {
-          const obj = {};
-          headers.forEach((key, i) => obj[key.trim()] = row[i]?.trim() ?? "");
-          return obj;
-        });
-        jsonString = JSON.stringify(jsonData, null, 2);
-      } else if (fileName.endsWith(".json")) {
-        jsonString = await file.text();
-      } else {
-        statusField.textContent = "❌ Ungültiger Dateityp. Bitte .csv oder .json hochladen.";
-        statusField.classList.add("status-error");
-        return;
-      }
-
-      document.getElementById(jsonPreviewId).value = jsonString;
-
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const { error } = await supabase.storage
-        .from("medien")
-        .upload(storageFilename, blob, { upsert: true });
-
-      if (error) {
-        statusField.textContent = "❌ Fehler beim Hochladen: " + error.message;
-        statusField.classList.remove("status-loading");
-        statusField.classList.add("status-error");
-      } else {
-        statusField.textContent = "✅ Upload erfolgreich!";
-        statusField.classList.remove("status-loading");
-        statusField.classList.add("status-success");
-      }
-    } catch (err) {
-      statusField.textContent = "❌ Fehler: " + err.message;
+    if (error) {
+      statusField.textContent = "❌ Fehler beim Hochladen: " + error.message;
       statusField.classList.remove("status-loading");
       statusField.classList.add("status-error");
+    } else {
+      statusField.textContent = "✅ Upload erfolgreich!";
+      statusField.classList.remove("status-loading");
+      statusField.classList.add("status-success");
     }
+
+  } catch (err) {
+    statusField.textContent = "❌ Fehler: " + err.message;
+    statusField.classList.remove("status-loading");
+    statusField.classList.add("status-error");
   }
+}
 
   async function handleDirectUpload(fileInputId, uploadStatusId, storageFilename) {
     const fileInput = document.getElementById(fileInputId);
