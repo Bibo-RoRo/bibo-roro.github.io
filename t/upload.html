@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <link rel="icon" type="image/png" href="../favicon.ico">
-    <link rel="stylesheet" href="stylesheet.css" type="text/css">
+    <link rel="stylesheet" href="../stylesheet.css" type="text/css">
     <meta charset="UTF-8">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,7 +17,7 @@
   <form id="login-form">
     <h2>Bibokatalogs-Zugang 🔐</h2>
     <div><input type="password" id="password" placeholder="Passwort" required />
-         <img id="togglePassword" src="unsichtbar.png" alt="Toggle Password" />
+         <img id="togglePassword" src="../b/unsichtbar.png" alt="Toggle Password" />
          <button class="login-btn" type="submit">&#x2713;</button></div>
     <p>Wie gelange ich an das Passwort?<br>Jeremias fragen (<a href="kontakt.html" alt="Kontaktformular">Kontaktformular</a>)</p>
   </form>
@@ -30,7 +30,7 @@
     <div id="uploadSection1" class="upload-section">
       <div><h3>ps-biblio (csv)</h3>
            <label for="csvFile1" class="file-label"><input type="file" id="csvFile1" accept=".csv, .json" hidden><span id="fileLabel1">Datei wählen</span></label>
-           <button id="uploadBtn1" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button></div>
+           <button id="uploadBtn1" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="../b/upload.png"></button></div>
       <p id="uploadStatus1" class="upload-status"></p>
       <textarea id="jsonPreview1" class="previewTextarea" style="display: none;" readonly></textarea>
     </div>
@@ -38,7 +38,7 @@
     <div id="uploadSection2" class="upload-section">
       <div><h3>library (json)</h3>
            <label for="csvFile2" class="file-label"><input type="file" id="csvFile2" accept=".csv, .json" hidden><span id="fileLabel2">Datei wählen</span></label>
-           <button id="uploadBtn2" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button></div>
+           <button id="uploadBtn2" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="../b/upload.png"></button></div>
       <p id="uploadStatus2" class="upload-status"></p>
     </div>
 
@@ -48,16 +48,16 @@
       <!-- Datei-Upload -->
       <div>
         <label for="csvFile3" class="file-label"><input type="file" id="csvFile3" accept=".csv, .json" hidden><span id="fileLabel3">optional: Datei wählen</span></label>
-        <button id="uploadBtn3" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="upload.png"></button>
+        <button id="uploadBtn3" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="../b/upload.png"></button>
       </div>
 
       <!-- Suche -->
       <div class="auswahl-suche">
         <input type="text" id="searchInput" placeholder="Autor oder Titel eingeben..." />
-        <button id="searchBtn"><img alt="Suchen" title="Suchen" src="search.png"></button>
+        <button id="searchBtn"><img alt="Suchen" title="Suchen" src="../b/search.png"></button>
 
         <input type="text" id="isbnInput" placeholder="ISBN eingeben..." />
-        <button id="searchIsbnBtn"><img alt="Suchen" title="Suchen" src="search.png"></button>
+        <button id="searchIsbnBtn"><img alt="Suchen" title="Suchen" src="../b/search.png"></button>
       </div>
 
       <p>Suchergebnisse:</p>
@@ -66,7 +66,7 @@
       <p>Ausgewählte Bücher:</p>
       <ul id="selectedBooks"></ul>
 
-      <button id="generateJsonBtn"><span>Formatieren & Aktualisieren</span> <img alt="Hochladen & Aktualisiseren" src="upload.png"></button>
+      <button id="generateJsonBtn"><span>Formatieren & Aktualisieren</span> <img alt="Hochladen & Aktualisiseren" src="../b/upload.png"></button>
       <textarea id="jsonPreview3" class="previewTextarea" style="display: none;" readonly></textarea>
       <p id="uploadStatus3" class="upload-status"></p> 
     </div>
