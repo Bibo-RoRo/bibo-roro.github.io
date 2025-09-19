@@ -46,13 +46,22 @@
   let auswahl = [];
 
   async function ladeMedien() {
-    const { data } = supabase.storage.from("medien").getPublicUrl("medien.json");
-    const res = await fetch(data.publicUrl);
-    medien = await res.json();
+    // Hauptliste (medien.json)
+    const { data: d1 } = supabase.storage.from("medien").getPublicUrl("medien.json");
+    const res1 = await fetch(d1.publicUrl);
+    const medien1 = await res1.json();
+
+    // Zweite Liste (medien-library.json)
+    const { data: d2 } = supabase.storage.from("medien").getPublicUrl("medien-library.json");
+    const res2 = await fetch(d2.publicUrl);
+    const medien2 = await res2.json();
+
+    // beide zusammenführen
+    medien = [...medien1, ...medien2];
+
     await ladeAuswahl();
     setupSearch();
   }
-
   async function ladeAuswahl() {
     const { data } = supabase.storage.from("medien").getPublicUrl("auswahl.json");
     const res = await fetch(data.publicUrl);
