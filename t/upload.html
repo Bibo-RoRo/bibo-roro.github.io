@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <link rel="icon" type="image/png" href="../favicon.ico">
-    <link rel="stylesheet" href="../stylesheet.css" type="text/css">
+    <link rel="stylesheet" href="stylesheet.css" type="text/css">
     <meta charset="UTF-8">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body id="upload">
@@ -36,10 +37,11 @@
     </div>
 
     <div id="uploadSection2" class="upload-section">
-      <div><h3>library (json)</h3>
-           <label for="csvFile2" class="file-label"><input type="file" id="csvFile2" accept=".csv, .json" hidden><span id="fileLabel2">Datei wählen</span></label>
+      <div><h3>library (xlsx/xls)</h3>
+           <label for="csvFile2" class="file-label"><input type="file" id="csvFile2" accept=".xlsx" hidden><span id="fileLabel2">Datei wählen</span></label>
            <button id="uploadBtn2" title="Hochladen & Aktualisiseren"><img alt="Hochladen & Aktualisiseren" src="../b/upload.png"></button></div>
       <p id="uploadStatus2" class="upload-status"></p>
+      <textarea id="jsonPreview2" class="previewTextarea" style="display: none;" readonly></textarea>
     </div>
 
     <div id="uploadSection3" class="upload-section">
@@ -219,6 +221,67 @@ async function handleSmartUpload(fileInputId, jsonPreviewId, uploadStatusId, sto
       statusField.classList.add("status-success");
     }
   }
+
+async function handleXlsxUpload(fileInputId, jsonPreviewId, uploadStatusId, storageFilename) {
+  const fileInput = document.getElementById(fileInputId);
+  const statusField = document.getElementById(uploadStatusId);
+  statusField.textContent = "";
+  statusField.className = "upload-status";
+
+  if (!fileInput.files.length) {
+    statusField.textContent = "❌ Bitte eine Datei auswählen!";
+    statusField.classList.add("status-error");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  statusField.textContent = `⏳ Verarbeite ${file.name}...`;
+  statusField.classList.add("status-loading");
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+    // 1. Kopfzeile rausziehen (erste Zeile)
+    const headers = rows[0].map(h => h?.toString().trim().toLowerCase());
+
+    // 2. Alle Datenzeilen ab Zeile 2 mappen
+	const data = rows.slice(1).map(row => ({
+	  Nummer: row[0]?.toString().trim() || "",
+	  Autor:  row[1]?.toString().trim() || "",
+	  Titel:  row[2]?.toString().trim() || "",
+	  ISBN:   row[3]?.toString().trim() || ""
+	})).filter(obj => obj.Nummer || obj.Autor || obj.Titel || obj.ISBN);
+
+    // 3. JSON bauen
+	const jsonString = "[\n" + data.map(obj => JSON.stringify(obj)).join(",\n") + "\n]";
+    document.getElementById(jsonPreviewId).value = jsonString;
+
+    // 4. Upload zu Supabase
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const { error } = await supabase.storage
+      .from("medien")
+      .upload(storageFilename, blob, { upsert: true });
+
+    if (error) {
+      statusField.textContent = "❌ Fehler beim Hochladen: " + error.message;
+      statusField.classList.remove("status-loading");
+      statusField.classList.add("status-error");
+    } else {
+      statusField.textContent = "✅ Upload erfolgreich!";
+      statusField.classList.remove("status-loading");
+      statusField.classList.add("status-success");
+    }
+
+  } catch (err) {
+    statusField.textContent = "❌ Fehler: " + err.message;
+    statusField.classList.remove("status-loading");
+    statusField.classList.add("status-error");
+  }
+}
+
 
 const selectedBooks = [];
 
@@ -416,7 +479,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
 
   document.getElementById("uploadBtn2").addEventListener("click", (e) => {
     e.preventDefault();
-    handleDirectUpload("csvFile2", "uploadStatus2", "medien-library.json");
+    handleXlsxUpload("csvFile2", "jsonPreview2", "uploadStatus2", "medien-library.json");
   });
 
   document.getElementById("uploadBtn3").addEventListener("click", (e) => {
