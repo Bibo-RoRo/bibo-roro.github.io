@@ -219,6 +219,10 @@ footer hr {
     color: white;
 }
 
+#upload h1 {
+    color: white;
+}
+
 h1 {
     margin-top: 5%;
     margin-bottom: 10%;
@@ -527,3 +531,4 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
+
