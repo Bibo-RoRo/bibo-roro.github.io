@@ -228,6 +228,10 @@ h1 {
     margin-bottom: 10%;
 }
 
+#upload h1 {
+    color: white;
+}
+
 input, button {
     margin-bottom: 0.5rem; 
     display: block; 
