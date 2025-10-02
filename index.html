@@ -6,7 +6,7 @@
   <meta name="description" content="Finde Bücher, Fachliteratur und Medien für Unterricht und Freizeit im Online-Katalog der Bibliothek des Romain-Rolland Gymnasiums Dresden" />
   <link rel="icon" type="image/png" href="favicon.ico">
 
-  <link rel="stylesheet" href="stylesheet.css" type="text/css">
+  <link rel="stylesheet" href="stylesheet.css?v=0210" type="text/css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -19,7 +19,9 @@
        <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
        <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
   <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
-  <p id="auswahl-info">- Neuanschaffungen -</p>
+  <input type="text" id="isbn-search" placeholder="Optional: nach ISBN suchen..." autocomplete="off" />
+
+  <p id="auswahl-info">- Empfehlungen -</p>
   
   <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="b/map.png" alt="Signaturen-Karte &#214;ffnen"></div>
   <div class="toggleContent" style="width: 100%;"><div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;"><iframe title="R 11" frameborder="0" width="1200" height="675" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://view.genially.com/689f9400c4eaa41076ba302f" type="text/html" allowscriptaccess="always" allowfullscreen="true" scrolling="yes" allownetworking="all"></iframe> </div> </div>  
@@ -46,22 +48,13 @@
   let auswahl = [];
 
   async function ladeMedien() {
-    // Hauptliste (medien.json)
-    const { data: d1 } = supabase.storage.from("medien").getPublicUrl("medien.json");
-    const res1 = await fetch(d1.publicUrl);
-    const medien1 = await res1.json();
-
-    // Zweite Liste (medien-library.json)
-    const { data: d2 } = supabase.storage.from("medien").getPublicUrl("medien-library.json");
-    const res2 = await fetch(d2.publicUrl);
-    const medien2 = await res2.json();
-
-    // beide zusammenführen
-    medien = [...medien1, ...medien2];
-
+    const { data } = supabase.storage.from("medien").getPublicUrl("medien.json");
+    const res = await fetch(data.publicUrl);
+    medien = await res.json();
     await ladeAuswahl();
     setupSearch();
   }
+
   async function ladeAuswahl() {
     const { data } = supabase.storage.from("medien").getPublicUrl("auswahl.json");
     const res = await fetch(data.publicUrl);
@@ -69,30 +62,53 @@
     renderListeOhneCover(auswahl, document.getElementById("book-list"));
   }
 
-  function setupSearch() {
-    const searchInput = document.getElementById("search");
-    const container = document.getElementById("book-list");
-    const auswahlInfo = document.getElementById("auswahl-info");
+function setupSearch() {
+  const searchInput = document.getElementById("search");
+  const isbnInput = document.getElementById("isbn-search");
+  const container = document.getElementById("book-list");
+  const auswahlInfo = document.getElementById("auswahl-info");
 
-    searchInput.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        const q = this.value.trim().toLowerCase();
-        if (q.length === 0) {
-          auswahlInfo.style.display = "block";
-          renderListeOhneCover(auswahl, container);
-          return;
-        }
-        auswahlInfo.style.display = "none";
-        let gefiltert = medien.filter((b) => {
-          const titel = (b.Titel || "").toLowerCase();
-          const autor = (b.Autor || "").toLowerCase();
-          return titel.includes(q) || autor.includes(q);
-        });
-        gefiltert = uniqueByISBN(gefiltert);
-        renderListeOhneCover(gefiltert, container);
-      }
-    });
+  function starteSuche() {
+    const q = searchInput.value.trim().toLowerCase();
+    const isbnQ = isbnInput.value.trim().replace(/-/g, "");
+
+    if (q.length === 0 && isbnQ.length === 0) {
+      auswahlInfo.style.display = "block";
+      renderListeOhneCover(auswahl, container);
+      return;
+    }
+
+    auswahlInfo.style.display = "none";
+
+    let gefiltert = [];
+
+    if (isbnQ.length > 0) {
+      // ISBN
+      gefiltert = medien.filter((b) => {
+        const rawIsbn = (b.ISBN || b.isbn || "").replace(/-/g, "");
+        return rawIsbn === isbnQ;
+      });
+    } else {
+      // Titel/Autor
+      gefiltert = medien.filter((b) => {
+        const titel = (b.Titel || "").toLowerCase();
+        const autor = (b.Autor || "").toLowerCase();
+        return titel.includes(q) || autor.includes(q);
+      });
+    }
+
+    gefiltert = uniqueByISBN(gefiltert);
+    renderListeOhneCover(gefiltert, container);
   }
+
+  searchInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") starteSuche();
+  });
+
+  isbnInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") starteSuche();
+  });
+}
 
   function uniqueByISBN(arr) {
   const seen = new Set();
