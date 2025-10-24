@@ -156,6 +156,7 @@ h1 {
     grid-template-columns: auto 1fr;
     gap: 0 1rem;
     max-height: 180px;
+    min-height: 20vh;
     overflow-y: auto;
     color: black;
 }
@@ -535,3 +536,4 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
+
