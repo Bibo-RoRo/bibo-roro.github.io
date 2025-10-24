@@ -146,7 +146,7 @@ function setupSearch() {
   }
 
   async function holeCoverURL(isbn) {
-    if (!isbn) return { url: "thumbnail.png", source: "Keine Quelle" };
+    if (!isbn) return { url: "b/thumbnail.png", source: "Keine Quelle" };
     const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
 
     async function pruefeBild(url) {
@@ -174,7 +174,7 @@ function setupSearch() {
     const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
     if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
 
-    return { url: "thumbnail.png", source: "Keine Quelle" };
+    return { url: "b/thumbnail.png", source: "Keine Quelle" };
   }
 
   async function zeigeLightbox(buch) {
@@ -270,5 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
