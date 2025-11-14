@@ -468,6 +468,16 @@ label[for="csvFile3"],
         background-image: url('b/bg-m.png');          
     }
 
+    #login-form {
+        margin-left: 10%;
+        margin-top: 10%;
+        max-width: 80%;
+    }
+
+    #isbn-search {
+        width: 100%;
+    }
+
     #uploadContainer {
         width: 100vh !important;
     }
@@ -536,4 +546,5 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
+
 
