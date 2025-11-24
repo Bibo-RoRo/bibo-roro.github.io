@@ -532,9 +532,11 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
   });
 
   logoutBtn.addEventListener('click', async () => {
+    const password = document.getElementById('password');
     await supabase.auth.signOut();
     uploadContainer.classList.add('hidden');
     form.style.display = 'block';
+    password.value = "";
   });
 
   // Passwort anzeigen/verstecken
