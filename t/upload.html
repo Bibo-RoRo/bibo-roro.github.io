@@ -79,16 +79,11 @@
   </div>
 
 <script>
-  const supabase = window.supabase.createClient(
-    "https://euuptkidjsquvhohvicv.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4",
-    {
-      auth: {
-        persistSession: true, 
-        storage: sessionStorage
-      }
-    }
-  );
+  const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4';
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true }
+  });
 
   function parseCSV(text) {
     const rows = [];
@@ -178,7 +173,7 @@
       document.getElementById(jsonPreviewId).value = jsonString;
 
       const blob = new Blob([jsonString], { type: "application/json" });
-      const { error } = await supabase.storage
+      const { error } = await client.storage
         .from("medien")
         .upload(storageFilename, blob, { upsert: true });
 
@@ -215,7 +210,7 @@
     statusField.textContent = `⏳ Lädt ${file.name} hoch...`;
     statusField.classList.add("status-loading");
 
-    const { error } = await supabase.storage
+    const { error } = await client.storage
       .from("medien")
       .upload(storageFilename, file, { upsert: true });
 
@@ -254,20 +249,20 @@ async function handleXlsxUpload(fileInputId, jsonPreviewId, uploadStatusId, stor
     const headers = rows[0].map(h => h?.toString().trim().toLowerCase());
 
     // 2. Alle Datenzeilen ab Zeile 2 mappen
-	const data = rows.slice(1).map(row => ({
-	  Nummer: row[0]?.toString().trim() || "",
-	  Autor:  row[1]?.toString().trim() || "",
-	  Titel:  row[2]?.toString().trim() || "",
-	  ISBN:   row[3]?.toString().trim() || ""
-	})).filter(obj => obj.Nummer || obj.Autor || obj.Titel || obj.ISBN);
+  const data = rows.slice(1).map(row => ({
+    Nummer: row[0]?.toString().trim() || "",
+    Autor:  row[1]?.toString().trim() || "",
+    Titel:  row[2]?.toString().trim() || "",
+    ISBN:   row[3]?.toString().trim() || ""
+  })).filter(obj => obj.Nummer || obj.Autor || obj.Titel || obj.ISBN);
 
     // 3. JSON bauen
-	const jsonString = "[\n" + data.map(obj => JSON.stringify(obj)).join(",\n") + "\n]";
+  const jsonString = "[\n" + data.map(obj => JSON.stringify(obj)).join(",\n") + "\n]";
     document.getElementById(jsonPreviewId).value = jsonString;
 
     // 4. Upload zu Supabase
     const blob = new Blob([jsonString], { type: "application/json" });
-    const { error } = await supabase.storage
+    const { error } = await client.storage
       .from("medien")
       .upload(storageFilename, blob, { upsert: true });
 
@@ -313,7 +308,7 @@ async function searchBooks() {
   resultsContainer.innerHTML = ""; // vorherige Ergebnisse löschen
   if (!query) return;
 
-  const { data: medienData, error: fetchError } = await supabase.storage
+  const { data: medienData, error: fetchError } = await client.storage
     .from("medien")
     .download("medien.json");
 
@@ -368,7 +363,7 @@ async function searchByISBN() {
   resultsContainer.innerHTML = "";
   if (!query) return;
 
-  const { data: medienData, error: fetchError } = await supabase.storage
+  const { data: medienData, error: fetchError } = await client.storage
     .from("medien")
     .download("medien.json");
 
@@ -457,7 +452,7 @@ async function generateJsonFromSelection() {
   statusField.classList.add("status-loading");
 
   const blob = new Blob([jsonString], { type: "application/json" });
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await client.storage
     .from("medien")
     .upload("auswahl.json", blob, { upsert: true });
 
@@ -514,7 +509,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
   const email = "bibo@example.com";
 
   async function showUploadIfLoggedIn() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await client.auth.getSession();
     if (session) {
       form.style.display = 'none';
       uploadContainer.classList.remove('hidden');
@@ -524,7 +519,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const password = document.getElementById('password').value;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) return alert("Login fehlgeschlagen: " + error.message);
 
     form.style.display = 'none';
@@ -533,7 +528,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
 
   logoutBtn.addEventListener('click', async () => {
     const password = document.getElementById('password');
-    await supabase.auth.signOut();
+    await client.auth.signOut();
     uploadContainer.classList.add('hidden');
     form.style.display = 'block';
     password.value = "";
@@ -576,4 +571,5 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
 
 </body>
 </html>
+
 
