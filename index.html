@@ -10,7 +10,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -37,18 +36,20 @@
        <p><a href="t/rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="t/kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="t/upload.html">Aktualisierung</a></p>
   </footer>
   
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
-  const supabase = window.supabase.createClient(
-    "https://euuptkidjsquvhohvicv.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  );
+  const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+  const SUPABASE_KEY = 'ds';
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true }
+  });
 
   let medien = [];
   let auswahl = [];
 
   async function ladeMedien() {
-    const { data } = supabase.storage.from("medien").getPublicUrl("medien.json");
+    const { data } = client.storage.from("medien").getPublicUrl("medien.json");
     const res = await fetch(data.publicUrl);
     medien = await res.json();
     await ladeAuswahl();
@@ -56,7 +57,7 @@
   }
 
   async function ladeAuswahl() {
-    const { data } = supabase.storage.from("medien").getPublicUrl("auswahl.json");
+    const { data } = client.storage.from("medien").getPublicUrl("auswahl.json");
     const res = await fetch(data.publicUrl);
     auswahl = await res.json();
     renderListeOhneCover(auswahl, document.getElementById("book-list"));
@@ -270,6 +271,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
 
