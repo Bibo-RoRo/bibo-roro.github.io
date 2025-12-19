@@ -9,11 +9,8 @@
   <link rel="stylesheet" href="stylesheet.css?v=0210" type="text/css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 </head>
-
 <body>
-    
   <div class="header-div">
        <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
        <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
@@ -133,7 +130,7 @@ function setupSearch() {
         <div class="book-details">
           <div class="book-header">
             <div>
-              <div class="book-title">${b.Titel || "Ohne Titel"}</div>
+              <div class="book-title"><span>${b.Titel || "Ohne Titel"}</span> <span>${b.Untertitel ? ` ...${b.Untertitel}` : ""}</span></div>
               <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
             </div>
             <div class="book-signature">${b.Signatur || "-"}</div>
@@ -206,8 +203,11 @@ function setupSearch() {
       ${coverHtml}
       <div class="book-info">
         <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
+        <div class="label">Untertitel:</div><div>${buch.Untertitel  || "Ohne Untertitel"}</div>
         <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
         <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
+        <div></div><div></div>
+        <div></div><div></div>
         <div></div><div></div>
         <div></div><div></div>
         <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
