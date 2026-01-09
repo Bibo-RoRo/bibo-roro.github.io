@@ -135,7 +135,7 @@ button:disabled {
 #startForm input {
     padding: 8px;
     font-size: 16px;
-    border-radius: 10px;
+    border-radius: 8px;
     outline: none;
     border: 1px solid black;
 }
