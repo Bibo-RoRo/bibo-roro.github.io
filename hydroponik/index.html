@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Biboquiz RoRo</title>
+    <meta name="author" content="&Eacute;mile Jeremias Ruff">
+    <link rel="icon" type="image/png" href="favicon.ico">
+
+    <link rel="stylesheet" href="hydro-quiz-style.css" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div id="quiz">
+    <section class="screen active" id="start-screen">
+        <h1>Willkommen zum Quiz!</h1>
+        <form id="startForm">
+            <input type="text" id="username" placeholder="Dein Name" autofocus>
+            <button type="submit">Start</button>
+        </form>
+    </section>
+
+    <section class="screen" id="screen"></section>
+
+    <section class="screen" id="end-screen">
+      <h2>Fertig 🎉</h2>
+      <p id="endText"></p>
+
+      <h3>🏆 Bestenliste</h3>
+      <ul id="scoreboard"></ul>
+
+      <button id="restart">Quiz wiederholen</button>
+    </section>
+</div>
+
+<div>
+    <img src="b/quiz-arrow.png" alt="Pfeil">
+    <p><a href="../" alt="Zum Online-katalog">Zum Online-Katalog</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const quizData = [
+  {
+    question: "Was bezeichnet der Begriff „Hydroponik“?",
+    type: "single",
+    answers: [
+      "Pflanzen wachsen in Erde mit Zusatzstoffen",
+      "Pflanzen wachsen ohne Erde in einer Nährlösung",
+      "Pflanzenwachstum nur im Freiland",
+      "Pflanzen wachsen ausschließlich im Schatten"
+    ],
+    correct: 2,
+    explanation: "Die Wurzeln nehmen Wasser und Mineralstoffe direkt aus einer Nährlösung auf – Erde ist nicht nötig."
+  },
+  {
+    question: "Welcher Faktor wird bei diesem Anbausystem besonders effizient genutzt?",
+    type: "single",
+    answers: [
+      "Boden",
+      "Wasser",
+      "Wind",
+      "Saatgut"
+    ],
+    correct: 2,
+    explanation: "Das Wasser bleibt im Kreislauf und versickert nicht, wodurch deutlich weniger verbraucht wird."
+  },
+  {
+    question: "Um wie viel Prozent kann der Wasserverbrauch im Vergleich zum klassischen Ackerbau sinken?",
+    type: "single",
+    answers: [
+      "ca. 20%",
+      "ca. 50%",
+      "bis zu 90%"
+    ],
+    correct: 3,
+    explanation: "Geschlossene Systeme ermöglichen extrem hohe Wassereinsparungen."
+  },
+  {
+    question: "Welcher Punkt gehört nicht zu den typischen Vorteilen?",
+    type: "single",
+    answers: [
+      "kaum Unkraut",
+      "hoher Platzbedarf",
+      "kontrollierte Nährstoffzufuhr",
+      "geringerer Wasserverbrauch"
+    ],
+    correct: 2,
+    explanation: "Der Anbau benötigt meist weniger Platz als klassische Landwirtschaft."
+  },
+  {
+    question: "Warum eignet sich diese Anbauform besonders für Städte?",
+    type: "single",
+    answers: [
+      "Sie funktioniert vertikal in Gebäuden",
+      "Sie benötigt fruchtbaren Boden",
+      "Sie braucht große Felder",
+      "Sie eignet sich gar nicht besonders"
+    ],
+    correct: 1,
+    explanation: "Pflanzen können übereinander in Regalen wachsen – ideal für urbane Räume."
+  },
+  {
+    question: "Welche Vorteile ergeben sich für Umwelt und Zukunft? (mehrere richtig)",
+    type: "multi",
+    answers: [
+      "kürzere Transportwege",
+      "geringere Überdüngung von Böden",
+      "Unabhängigkeit von Jahreszeiten",
+      "höherer Wasserverlust"
+    ],
+    correct: [1,2,4],
+    explanation: "Licht, Nährstoffe und Technik bleiben entscheidend – nur die Erde entfällt."
+  },
+  {
+    question: "Wie viel schneller können Pflanzen in Nährlösungen im Durchschnitt wachsen?",
+    type: "single",
+    answers: [
+      "gleich schnell",
+      "ca. 10% schneller",
+      "20–50 % schneller",
+      "mehr als doppelt so schnell"
+    ],
+    correct: 3,
+    explanation: "Nährstoffe stehen konstant und optimal zur Verfügung, was das Wachstum beschleunigt."
+  },
+  {
+    question: "Welche Pflanzen sind besonders gut geeignet?",
+    type: "single",
+    answers: [
+      "Salat und Kräuter",
+      "Nadelbäume",
+      "Getreidepflanzen wie Weizen",
+      "Kakteen"
+    ],
+    correct: 1,
+    explanation: "Blattgemüse und Kräuter wachsen schnell und benötigen wenig Platz."
+  },
+  {
+    question: "Welche Vorteile ergeben sich für Umwelt und Zukunft? (Mehrere richtig)",
+    type: "multi",
+    answers: [
+      "kürzere Transportwege",
+      "geringere Überdüngung von Böden",
+      "Unabhängigkeit von Jahreszeiten",
+      "höherer Wasserverlust"
+    ],
+    correct: [1,2,3],
+    explanation: "Lokaler, kontrollierter Anbau schont Ressourcen und ermöglicht ganzjährige Ernten."
+  }
+];
+
+function randomGermanUsername() {
+  const adjectives = [
+    "Lesender", "Neugieriger", "Schlauer", "Flinker", "Stiller",
+    "Kreativer", "Fleißiger", "Lustiger", "Mutiger", "Geheimer"
+  ];
+
+  const nouns = [
+    "Pflanzenfreund", "Wurzelforscher", "Blattentdecker", "Gartenknobler", "Keimlingshüter",
+    "Wachstumstüftler", "GrünDenker", "Ernteprofi", "WasserGärtner", "Naturbeobachter"
+  ];
+
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const number = Math.floor(Math.random() * 100);
+
+  return `${adj}${noun}${number}`;
+}
+
+const startScreen = document.getElementById("start-screen");
+const quizScreen  = document.getElementById("screen");
+const endScreen   = document.getElementById("end-screen");
+const endText     = document.getElementById("endText");
+const scoreboard  = document.getElementById("scoreboard");
+const restartBtn  = document.getElementById("restart");
+
+let index = 0;
+let score = 0;
+let username = "";
+
+function shuffle(array) {
+  return array
+    .map(v => ({ v, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ v }) => v);
+}
+
+document.getElementById("startForm").addEventListener("submit", e => {
+  e.preventDefault();
+  username = document.getElementById("username").value.trim() || "Gast";
+
+  startScreen.classList.remove("active");
+  quizScreen.classList.add("active");
+
+  index = 0;
+  score = 0;
+  renderQuestion();
+});
+
+function renderQuestion() {
+  const q = quizData[index];
+  const type = q.type === "multi" ? "checkbox" : "radio";
+
+  const shuffledAnswers = shuffle(
+    q.answers.map((text, originalIndex) => ({
+      text,
+      originalIndex
+    }))
+  );
+
+  quizScreen.innerHTML = `
+    <h2>${q.question}</h2>
+    ${shuffledAnswers.map(a => `
+      <label class="option">
+        <input type="${type}" name="answer" value="${a.originalIndex}">
+        <span class="circle"></span>${a.text}
+      </label>
+    `).join("")}
+    <button id="check" disabled>Prüfen</button>
+    <div class="feedback" id="feedback"></div>
+  `;
+
+  const inputs = quizScreen.querySelectorAll("input");
+  const check  = quizScreen.querySelector("#check");
+  const fb     = quizScreen.querySelector("#feedback");
+
+  inputs.forEach(i => i.addEventListener("change", () => {
+    check.disabled = [...inputs].every(x => !x.checked);
+  }));
+
+  check.addEventListener("click", () => {
+    score += countCorrect();
+
+    const correct = isCorrect();
+    fb.textContent = correct ? "Richtig!" : "Falsch!";
+    fb.className = "feedback " + (correct ? "correct" : "wrong");
+    if(q.explanation) fb.textContent += " " + q.explanation;
+
+    check.remove();
+    const next = document.createElement("button");
+    next.textContent = index === quizData.length - 1 ? "Auswertung" : "Weiter";
+    next.onclick = nextScreen;
+    quizScreen.appendChild(next);
+  });
+}
+
+function isCorrect() {
+  const q = quizData[index];
+  const checked = [...quizScreen.querySelectorAll("input:checked")].map(i=>+i.value);
+  if(q.type === "single") return checked[0] === q.correct;
+  return checked.length === q.correct.length && checked.every(v=>q.correct.includes(v));
+}
+
+function countCorrect() {
+  const q = quizData[index];
+  const checked = [...quizScreen.querySelectorAll("input:checked")].map(i=>+i.value);
+  if(q.type === "single") return checked[0] === q.correct ? 1 : 0;
+  return checked.filter(v=>q.correct.includes(v)).length;
+}
+
+async function nextScreen() {
+  quizScreen.classList.add("exit-left");
+
+  setTimeout(async () => {
+    index++;
+
+    if(index >= quizData.length) {
+      quizScreen.classList.remove("active", "exit-left");
+      quizScreen.innerHTML = "";
+
+      await saveScore();
+      await loadScoreboard();
+
+      endText.textContent = `${username}, dein Score: ${score}`;
+      endScreen.classList.add("active");
+    } else {
+      quizScreen.classList.remove("exit-left");
+      renderQuestion();
+    }
+  }, 400);
+}
+
+async function saveScore() {
+  if (username === "Gast") return;
+
+  await client.from("quiz-scores").insert({
+    name: username,
+    score: score
+  });
+}
+
+async function loadScoreboard() {
+  const { data, error } = await client
+    .from("quiz-scores")
+    .select("name, score")
+    .order("score", { ascending: false })
+    .limit(5);
+
+  if (error || !data) {
+    scoreboard.innerHTML = "<li>Keine Daten verfügbar</li>";
+    return;
+  }
+
+  scoreboard.innerHTML = data.map(e => `
+    <li>${e.score} - ${e.name}</li>
+  `).join("");
+}
+
+const usernameInput = document.getElementById("username");
+usernameInput.placeholder = "Dein Name (oder " + randomGermanUsername() + ")";
+
+restartBtn.addEventListener("click", () => {
+  index = 0;
+  score = 0;
+  username = "";
+
+  endScreen.classList.remove("active");
+  startScreen.classList.add("active");
+  document.getElementById("username").value = "";
+});
+
+});
+</script>
+
+</body>
+</html>
