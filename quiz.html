@@ -249,7 +249,7 @@ async function nextScreen() {
 async function saveScore() {
   if (username === "Gast") return;
 
-  await client.from("quiz-scores").insert({
+  await client.from("bibo-quiz").insert({
     name: username,
     score: score
   });
@@ -290,3 +290,4 @@ restartBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
