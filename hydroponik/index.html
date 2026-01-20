@@ -294,7 +294,7 @@ async function saveScore() {
 
 async function loadScoreboard() {
   const { data, error } = await client
-    .from("quiz-scores")
+    .from("hydro-quiz")
     .select("name, score")
     .order("score", { ascending: false })
     .limit(5);
