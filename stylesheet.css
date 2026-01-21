@@ -98,7 +98,6 @@ h1 {
     font-weight: bold;
     font-size: 1.1rem;
     margin-bottom: 0.1rem;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -108,8 +107,6 @@ h1 {
     display: inline-block;
     font-size: 0.95rem;
     font-weight: normal;
-    white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
 }
@@ -525,6 +522,8 @@ label[for="csvFile3"],
     
     .book-title span:nth-of-type(2) {
         max-width: 80%;
+        white-space: nowrap;
+        overflow: hidden;
     }
     
     .book-meta {
