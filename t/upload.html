@@ -146,7 +146,7 @@
 
 
         if (!text.startsWith("Nummer")) {
-          text = '"Nummer","Signatur","Autor","Titel","ISBN"\n' + text.trim();
+          text = '"Nummer","ISBN","Signatur","Autor","Titel","Untertitel"\n' + text.trim();
         }
 
         const rows = parseCSV(text);
@@ -571,6 +571,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
 
 </body>
 </html>
+
 
 
 
