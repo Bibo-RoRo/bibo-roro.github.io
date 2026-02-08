@@ -235,7 +235,7 @@
                background-color: rgba(0, 0, 0, 0.1);
           }
 
-          .arrow {
+          .fun-arrow {
                text-align: center;
                font-size: 40px;
                color: black;
@@ -330,7 +330,7 @@
              <button onclick="triggerChaos()">🚫</button>
           </div>
              
-          <div id="arrow" class="arrow" style="margin-left: -10px; display:none;">↑</div>
+          <div id="fun-arrow" class="arrow" style="margin-left: -10px; display:none;">↑</div>
           <p id="reparieren">Reparieren</p>
 
           <div id="quiz-overlay"></div>
@@ -464,7 +464,7 @@ function triggerChaos() {
         alert("Oops! We broke the matrix. Someone not call Neo!");
         document.getElementById("repair-btn").style.display = "inline-block";
         document.getElementById("reparieren").style.display = "block";
-        document.getElementById("arrow").style.display = "block";
+        document.getElementById("fun-arrow").style.display = "block";
     }, 1000);
 }
 
@@ -488,7 +488,7 @@ function checkQuizAnswer() {
         document.getElementById("quiz-overlay").style.display = "none";
         document.getElementById("repair-btn").style.display = "none";
         document.getElementById("reparieren").style.display = "none";
-        document.getElementById("arrow").style.display = "none";
+        document.getElementById("fun-arrow").style.display = "none";
         specialModeActive = false;
         localStorage.removeItem("chaos");
     } else {
@@ -521,7 +521,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("repair-btn").style.display = "inline-block";
         const reparieren = document.getElementById("reparieren");
         if (reparieren) reparieren.style.display = "block";
-        const arrow = document.getElementById("arrow");
+        const arrow = document.getElementById("fun-arrow");
         if (arrow) arrow.style.display = "block";
     }
 });
