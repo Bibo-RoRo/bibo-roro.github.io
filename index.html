@@ -1,181 +1,176 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <title>Bibokatalog RoRo</title>
-  <meta name="author" content="&Eacute;mile Jeremias Ruff">
-  <meta name="description" content="Finde Bücher, Fachliteratur und Medien für Unterricht und Freizeit im Online-Katalog der Bibliothek des Romain-Rolland Gymnasiums Dresden" />
-  <link rel="icon" type="image/png" href="favicon.ico">
+    <title>Bibokatalog RoRo</title>
+    <meta name="author" content="&Eacute;mile Jeremias Ruff">
+    <meta name="description" content="Finde Bücher, Fachliteratur und Medien für Unterricht und Freizeit im Online-Katalog der Bibliothek des Romain-Rolland Gymnasiums Dresden" />
+    <link rel="icon" type="image/png" href="favicon.ico">
 
-  <link rel="stylesheet" href="stylesheet.css?v=1912" type="text/css">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="stylesheet.css?v=1912" type="text/css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <div class="header-div">
-       <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
-       <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
-  <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
-  <input type="text" id="isbn-search" placeholder="Optional: nach ISBN suchen..." autocomplete="off" />
+    <div class="header-div">
+        <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
+        <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
+    <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
+    <input type="text" id="isbn-search" placeholder="Optional: nach ISBN suchen..." autocomplete="off" />
 
-  <p id="auswahl-info">- Empfehlungen -</p>
-  
-  <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="b/map.png" alt="Signaturen-Karte &#214;ffnen"></div>
-  <div class="toggleContent" style="width: 100%;"><div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;"><iframe title="R 11" frameborder="0" width="1200" height="675" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://view.genially.com/689f9400c4eaa41076ba302f" type="text/html" allowscriptaccess="always" allowfullscreen="true" scrolling="yes" allownetworking="all"></iframe> </div> </div>  
+    <p id="auswahl-info">- Empfehlungen -</p>
+    
+    <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="b/map.png" alt="Signaturen-Karte &#214;ffnen"></div>
+    <div class="toggleContent" style="width: 100%;"><div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;"><iframe title="R 11" frameborder="0" width="1200" height="675" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://view.genially.com/689f9400c4eaa41076ba302f" type="text/html" allowscriptaccess="always" allowfullscreen="true" scrolling="yes" allownetworking="all"></iframe> </div> </div>  
 
-  <div id="book-list"></div>
+    <div id="book-list"></div>
 
-  <div id="lightbox-overlay">
-    <div id="lightbox-content"></div>
-  </div>
+    <div id="lightbox-overlay"><div id="lightbox-content"></div></div>
 
-  <footer>
-       <hr size="2" noshade>
-       <p><a href="t/rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="t/kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="t/upload.html">Aktualisierung</a></p>
-  </footer>
-  
+    <footer><p><a href="t/rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="t/kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="t/upload.html">Aktualisierung</a></p></footer>
+    
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
-  const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
-  const SUPABASE_KEY = 'ds';
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_KEY = 'ds';
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true }
-  });
+});
 
-  let medien = [];
-  let auswahl = [];
+let medien = [];
+let auswahl = [];
 
-  async function ladeMedien() {
+async function ladeMedien() {
     const { data } = client.storage.from("medien").getPublicUrl("medien.json");
     const res = await fetch(data.publicUrl);
     medien = await res.json();
     await ladeAuswahl();
     setupSearch();
-  }
+}
 
-  async function ladeAuswahl() {
+async function ladeAuswahl() {
     const { data } = client.storage.from("medien").getPublicUrl("auswahl.json");
     const res = await fetch(data.publicUrl);
     auswahl = await res.json();
     renderListeOhneCover(auswahl, document.getElementById("book-list"));
-  }
+}
 
 function setupSearch() {
-  const searchInput = document.getElementById("search");
-  const isbnInput = document.getElementById("isbn-search");
-  const container = document.getElementById("book-list");
-  const auswahlInfo = document.getElementById("auswahl-info");
+    const searchInput = document.getElementById("search");
+    const isbnInput = document.getElementById("isbn-search");
+    const container = document.getElementById("book-list");
+    const auswahlInfo = document.getElementById("auswahl-info");
 
-  function starteSuche() {
-    const q = searchInput.value.trim().toLowerCase();
-    const isbnQ = isbnInput.value.trim().replace(/-/g, "");
+    function starteSuche() {
+        const q = searchInput.value.trim().toLowerCase();
+        const isbnQ = isbnInput.value.trim().replace(/-/g, "");
 
-    if (q.length === 0 && isbnQ.length === 0) {
-      auswahlInfo.style.display = "block";
-      renderListeOhneCover(auswahl, container);
-      return;
-    }
+        if (q.length === 0 && isbnQ.length === 0) {
+            auswahlInfo.style.display = "block";
+            renderListeOhneCover(auswahl, container);
+            return;
+        }
 
     auswahlInfo.style.display = "none";
 
     let gefiltert = [];
 
     if (isbnQ.length > 0) {
-      // ISBN
-      gefiltert = medien.filter((b) => {
-        const rawIsbn = (b.ISBN || b.isbn || "").replace(/-/g, "");
-        return rawIsbn === isbnQ;
-      });
+        // ISBN
+        gefiltert = medien.filter((b) => {
+            const rawIsbn = (b.ISBN || b.isbn || "").replace(/-/g, "");
+            return rawIsbn === isbnQ;
+        });
     } else {
-      // Titel/Autor
-      gefiltert = medien.filter((b) => {
-        const titel = (b.Titel || "").toLowerCase();
-        const autor = (b.Autor || "").toLowerCase();
-        return titel.includes(q) || autor.includes(q);
-      });
+        // Titel/Autor
+        gefiltert = medien.filter((b) => {
+            const titel = (b.Titel || "").toLowerCase();
+            const autor = (b.Autor || "").toLowerCase();
+            return titel.includes(q) || autor.includes(q);
+        });
     }
 
-    gefiltert = uniqueByISBN(gefiltert);
-    renderListeOhneCover(gefiltert, container);
-  }
+        gefiltert = uniqueByISBN(gefiltert);
+        renderListeOhneCover(gefiltert, container);
+    }
 
-  searchInput.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") starteSuche();
-  });
+    searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") starteSuche();
+    });
 
-  isbnInput.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") starteSuche();
-  });
+    isbnInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") starteSuche();
+    });
 }
 
-  function uniqueByISBN(arr) {
-  const seen = new Set();
-  return arr.filter((item) => {
+function uniqueByISBN(arr) {
+const seen = new Set();
+return arr.filter((item) => {
     const rawIsbn = (item.ISBN || item.isbn || "").trim();
     if (!rawIsbn) return true; // Behalte Einträge ohne ISBN
     const isbn = rawIsbn.replace(/-/g, "");
     if (seen.has(isbn)) return false;
     seen.add(isbn);
     return true;
-  });
-  }
+});
+}
 
-  function renderListeOhneCover(liste, container) {
+function renderListeOhneCover(liste, container) {
     container.innerHTML = "";
     for (const b of liste) {
-      const div = document.createElement("div");
-      div.className = "book";
-      div.dataset.details = JSON.stringify(b);
-      div.innerHTML = `
-        <div class="book-details">
-          <div class="book-header">
-            <div>
-              <div class="book-title"><span>${b.Titel || "Ohne Titel"}</span> <span>${b.Untertitel ? ` ...${b.Untertitel}` : ""}</span></div>
-              <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+        const div = document.createElement("div");
+        div.className = "book";
+        div.dataset.details = JSON.stringify(b);
+        div.innerHTML = `
+            <div class="book-details">
+                <div class="book-header">
+                    <div>
+                        <div class="book-title"><span>${b.Titel || "Ohne Titel"}</span> <span>${b.Untertitel ? ` ...${b.Untertitel}` : ""}</span></div>
+                        <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+                    </div>
+                    <div class="book-signature">${b.Signatur || "-"}</div>
+                </div>
+                <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
             </div>
-            <div class="book-signature">${b.Signatur || "-"}</div>
-          </div>
-          <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
-        </div>
-      `;
-      div.addEventListener("click", () => zeigeLightbox(b));
-      container.appendChild(div);
+        `;
+        div.addEventListener("click", () => zeigeLightbox(b));
+        container.appendChild(div);
     }
-  }
+}
 
-  async function holeCoverURL(isbn) {
+async function holeCoverURL(isbn) {
     if (!isbn) return { url: "b/thumbnail.png", source: "Keine Quelle" };
     const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
 
     async function pruefeBild(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img.width > 50 && img.height > 50);
-        img.onerror = () => resolve(false);
-        img.src = url;
-      });
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img.width > 50 && img.height > 50);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
     }
 
     if (await pruefeBild(olUrlLarge)) return { url: olUrlLarge, source: "OpenLibrary" };
 
     try {
-      const googleRes = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
-      );
-      const googleData = await googleRes.json();
-      const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
-      if (imgLinks?.thumbnail) {
-        return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
-      }
+        const googleRes = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
+        );
+        const googleData = await googleRes.json();
+        const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
+        if (imgLinks?.thumbnail) {
+            return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
+        }
     } catch {}
 
     const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
     if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
 
     return { url: "b/thumbnail.png", source: "Keine Quelle" };
-  }
+}
 
-  async function zeigeLightbox(buch) {
+async function zeigeLightbox(buch) {
     const overlay = document.getElementById("lightbox-overlay");
     const content = document.getElementById("lightbox-content");
 
@@ -184,91 +179,90 @@ function setupSearch() {
     const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
 
     if (isbnRaw) {
-      const isbn = isbnRaw.replace(/-/g, "");
-      const { url, source } = await holeCoverURL(isbn);
-      coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
+        const isbn = isbnRaw.replace(/-/g, "");
+        const { url, source } = await holeCoverURL(isbn);
+        coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
 
-      if (source === "OpenLibrary") {
-        quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
-      } else if (source === "Google Books") {
-        quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
-      } else {
-        quelle = "-";
-      }
+        if (source === "OpenLibrary") {
+            quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
+        } else if (source === "Google Books") {
+            quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
+        } else {
+            quelle = "-";
+        }
     } else {
-      coverHtml = `<img src="b/thumbnail.png" alt="Kein Cover verfÃ¼gbar" />`;
+        coverHtml = `<img src="b/thumbnail.png" alt="Kein Cover verfÃ¼gbar" />`;
     }
 
     content.innerHTML = `
-      ${coverHtml}
-      <div class="book-info">
-        <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
-        <div class="label">Untertitel:</div><div>${buch.Untertitel  || "Ohne Untertitel"}</div>
-        <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
-        <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
-        <div></div><div></div>
-        <div></div><div></div>
-        <div></div><div></div>
-        <div></div><div></div>
-        <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
-        <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
-        <div></div><div></div><div></div><div></div>
-        <div></div><div></div><div></div><div></div>
-        <div class="label">Covereintrag:</div><div>${quelle}</div>
-      </div>
+        ${coverHtml}
+        <div class="book-info">
+            <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
+            <div class="label">Untertitel:</div><div>${buch.Untertitel  || "Ohne Untertitel"}</div>
+            <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
+            <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
+            <div></div><div></div>
+            <div></div><div></div>
+            <div></div><div></div>
+            <div></div><div></div>
+            <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
+            <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+            <div class="label">Covereintrag:</div><div>${quelle}</div>
+        </div>
     `;
     overlay.style.display = "flex";
-  }
+}
 
-  document.getElementById("lightbox-overlay").addEventListener("click", function(e) {
+document.getElementById("lightbox-overlay").addEventListener("click", function(e) {
     if (e.target.id === "lightbox-overlay") {
-      this.style.display = "none";
+        this.style.display = "none";
     }
-  });
+});
 
-  ladeMedien();
+ladeMedien();
 </script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const triggers = document.querySelectorAll('.toggleTrigger');
+    const triggers = document.querySelectorAll('.toggleTrigger');
 
-  triggers.forEach(trigger => {
-    const menu = trigger.nextElementSibling;
-    const png = trigger.querySelector('.toggle-png');
+    triggers.forEach(trigger => {
+        const menu = trigger.nextElementSibling;
+        const png = trigger.querySelector('.toggle-png');
 
-    const getDefaultOpen = () => {
-      const attr = trigger.getAttribute('data-default-open');
-      return attr === 'true';
-    };
+        const getDefaultOpen = () => {
+            const attr = trigger.getAttribute('data-default-open');
+            return attr === 'true';
+        };
 
-    const getDisplayType = () => {
-      return trigger.getAttribute('data-display') || 'block';
-    };
+        const getDisplayType = () => {
+            return trigger.getAttribute('data-display') || 'block';
+        };
 
-    const setInitialState = () => {
-      const defaultOpen = getDefaultOpen();
-      const displayType = getDisplayType();
-      menu.style.display = defaultOpen ? displayType : 'none';
-      menu.dataset.expanded = defaultOpen.toString();
-    };
+        const setInitialState = () => {
+            const defaultOpen = getDefaultOpen();
+            const displayType = getDisplayType();
+            menu.style.display = defaultOpen ? displayType : 'none';
+            menu.dataset.expanded = defaultOpen.toString();
+        };
 
-    trigger.addEventListener('click', () => {
-      const isExpanded = menu.dataset.expanded === 'true';
-      const displayType = getDisplayType();
-      menu.style.display = isExpanded ? 'none' : displayType;
-      menu.dataset.expanded = (!isExpanded).toString();
+        trigger.addEventListener('click', () => {
+            const isExpanded = menu.dataset.expanded === 'true';
+            const displayType = getDisplayType();
+            menu.style.display = isExpanded ? 'none' : displayType;
+            menu.dataset.expanded = (!isExpanded).toString();
 
-      if (png) {
-        png.src = !isExpanded ? '../b/toggle-down.png' : '../b/toggle-up.png';
-      }
+            if (png) {
+                png.src = !isExpanded ? '../b/toggle-down.png' : '../b/toggle-up.png';
+            }
+        });
+
+        setInitialState();
     });
-
-    setInitialState();
-  });
 });
 </script>
 
 </body>
 </html>
-

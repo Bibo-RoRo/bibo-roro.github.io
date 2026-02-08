@@ -10,7 +10,8 @@
      <meta charset="UTF-8">
 
      <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
-
+     
+     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
      <style>
           body {
                font-family: 'Lora', serif;
@@ -154,19 +155,127 @@
                     margin-top: 10%;
                }
           }
+
+          /* Quiz */
+          .rotated {
+               animation: rotate361 1s linear forwards;
+               overflow-y: auto !important;
+          }
+
+          @keyframes rotate361 {
+               from { transform: rotate(0deg); }
+               to { transform: rotate(361deg); }
+          }
+
+          @keyframes bounce {
+               0%, 100% { transform: translateY(-10px); }
+               50% { transform: translateY(0); }
+          }
+
+          .useless-darkmode * {
+               background-color: #111 !important;
+               color: #fffff !important;
+               background-image: none !important;
+               z-index: 1;
+          }
+
+          .cat {
+               position: fixed;
+               font-size: 2rem;
+               animation-name: floatDown;
+               animation-timing-function: ease-in;
+               animation-fill-mode: forwards;
+               left: calc(10% + 80% * var(--x));
+               top: -2rem;
+               pointer-events: none;
+               user-select: none;
+               z-index: 100000;
+          }
+
+          @keyframes floatDown {
+               to {
+                    top: 110%;
+                    opacity: 0;
+               }
+          }
+
+          #quiz-overlay {
+               display: none;
+               position: fixed;
+               top: 0; left: 0;
+               width: 100%; height: 100%;
+               background: rgba(0, 0, 0, 0.6);
+               z-index: 100001;
+          }
+
+          #quiz-modal {
+               display: none;
+               position: fixed;
+               top: 50%; left: 50%;
+               transform: translate(-50%, -50%);
+               background: #fff;
+               padding: 2rem;
+               border-radius: 10px;
+               z-index: 100002;
+               max-width: 90vw;
+               text-align: center;
+          }
+
+          #fun-buttons {
+               display: none;
+               gap: 10px;
+          }
+
+          button {
+               background-color: rgba(0, 0, 0, 0.2);
+               color: white;
+          }
+
+          button:hover {
+               background-color: rgba(0, 0, 0, 0.1);
+          }
+
+          .arrow {
+               text-align: center;
+               font-size: 40px;
+               color: black;
+               animation: bounce 1.5s infinite;
+               padding: 1rem 0;
+               padding-left: 167px;
+               text-align: left;
+               display: none;
+          }
+
+          #nicht-druecken {
+               margin-left: 110px; 
+               margin-top: -15px;
+               display:block;
+          }
+
+          #reparieren {
+               margin-left: 110px; 
+               margin-top: -15px;
+               display:none;
+          }
+
+          @media (max-width: 768px) {
+               h1:nth-of-type(2) {
+                    margin-top: 25%;
+               }
+          }
      </style>
 </head>
 
 <body>
-  <div class="header-div">
-       <div class="bibo-h3"><a href="../index.html">Bibliothekskatalog RoRo</a>
+     <div class="header-div">
+          <div class="bibo-h3"><a href="../index.html">Bibliothekskatalog RoRo</a>
                             <h1>- Rechtliches -</h1></div>
-       <img class="logo" src="../b/logo.png" alt="Logo der Bibliothek"></div>
-  
-  <a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+          <img class="logo" src="../b/logo.png" alt="Logo der Bibliothek"></div>
 
-  <div class="imda">
-       <div>
+     <a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+
+     <div class="imda">
+     <div>
           <h3>Impressum</h3>
           <p><b>Angaben gemäß § 5 DDG:</b><br><br>
 
@@ -209,12 +318,34 @@
           <p>Buchcover werden über die Google Books API und die Open Library Covers API eingebunden. <br> Die Rechte an den Covern liegen bei den jeweiligen Rechteinhabern. 
           <br><br><i>Quellen:&nbsp; </i><a href="https://openlibrary.org">Open Library</a> &nbsp;|&nbsp; <a href="https://books.google.com">Google Books</a></p>
       
-          <br><p>-<br>Sieht gut aus? War Absicht. <br>~&Eacute;mile Jeremias Ruff. </p>  
-      </div>
+          <!-- Quiz -->
+          <br><p>-<br>Sieht gut aus? War Absicht. <br>~&Eacute;mile Jeremias Ruff.
+          <span onclick="throwConfetti(event)" style="cursor: pointer;"><u>[Konfetti]</u></span></p>
 
-       <div class="vertikale-linie"></div>
+          <div id="fun-buttons">
+             <button onclick="toggleCatRain()">🐱</button>
+             <button onclick="toggleMoreCatRain()">🐱🐱</button>
+             <button onclick="toggleUselessDarkMode()" title="Alternativer Darkmode">🌙</button>
+             <button id="repair-btn" style="display:none;" onclick="showQuiz()">🔧</button>
+             <button onclick="triggerChaos()">🚫</button>
+          </div>
+             
+          <div id="arrow" class="arrow" style="margin-left: -10px; display:none;">↑</div>
+          <p id="reparieren">Reparieren</p>
 
-       <div>
+          <div id="quiz-overlay"></div>
+          <div id="quiz-modal">
+             <h3>Reparaturmodus</h3>
+             <p id="quiz-question"></p>
+             <input type="text" id="quiz-answer" placeholder="Antwort eingeben"><br><br>
+             <button onclick="checkQuizAnswer()" style="color: black;">Antwort prüfen</button>
+          </div>
+          <!---->
+     </div>
+
+     <div class="vertikale-linie"></div>
+
+     <div>
           <h3>Datenschutzerklärung</h3>
 
           <h4 style="text-align: center;">- Github -</h4>
@@ -243,18 +374,158 @@
           <p>Die gespeicherten Daten werden gelöscht, sobald sie für den genannten Zweck nicht mehr erforderlich sind. Sie haben das Recht, Auskunft über die zu Ihrer Person gespeicherten Daten zu verlangen, unrichtige Daten berichtigen zu lassen oder die Löschung Ihrer Daten zu beantragen.</p>
 
      </div>
-  </div>
- 
-  <footer>
-       <hr size="2" noshade>
-       <p><a href="../index.html">Startseite</a> &nbsp;|&nbsp; <a href="kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p>
-  </footer>
+     </div>
+
+     <footer><p><a href="../index.html">Startseite</a> &nbsp;|&nbsp; <a href="kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p></footer>
+
+<script>
+let quizData = [
+    { frage: "Was ist der Standardport für HTTPS?", antwort: "443" },
+    { frage: "Welche Programmiersprache läuft direkt im Browser?", antwort: "JavaScript" },
+    { frage: "Welche Programmiersprache verwendet Schlüsselwörter wie „def“ und „lambda“?", antwort: "Python" },
+    { frage: "Wie heißt das Versionsverwaltungssystem mit dem Befehl „git commit“?", antwort: "Git" },
+    { frage: "Welche Zahl stellt die IPv4-Maske 255.255.255.0 in CIDR-Notation dar?", antwort: "/24" },
+    { frage: "Welche Sprache wird hauptsächlich für das Styling von Webseiten verwendet (Abkürzung)?", antwort: "CSS" }
+];
+
+let quizIndex = 0;
+let catRainInterval;
+let specialModeActive = false;
+
+function toggleUselessDarkMode() {
+    document.documentElement.style.setProperty("background-color", "black", "important");
+    document.documentElement.style.setProperty("color", "white", "important");
+    document.body.style.setProperty("background-color", "black", "important");
+    document.body.style.setProperty("color", "white", "important");
+
+    document.querySelector(".menu")?.style.setProperty("display", "none");
+    document.querySelector(".sitemap")?.style.setProperty("display", "none");
+    document.querySelector("#fun-buttons")?.style.setProperty("display", "none");
+
+    const style = document.createElement("style");
+    style.textContent = `
+        a, a:link, a:visited, a:hover, a:active {
+            color: black !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // alle sichtbaren Elemente umstellen
+    document.querySelectorAll("*").forEach(el => {
+        el.style.setProperty("background-color", "black", "important");
+        el.style.setProperty("color", "white", "important");
+    });
+}
+
+
+
+function toggleCatRain(amount = 50, delay = 50) {
+    let count = 0;
+    catRainInterval = setInterval(() => {
+        if (count >= amount) {
+            clearInterval(catRainInterval);
+            return;
+        }
+        const cat = document.createElement("div");
+        cat.className = "cat";
+        cat.style.setProperty('--x', Math.random());
+        cat.style.animationDuration = (2 + Math.random() * 2) + "s";
+        cat.textContent = Math.random() < 0.5 ? "🐱" : "😺";
+        document.body.appendChild(cat);
+        setTimeout(() => cat.remove(), 4000);
+        count++;
+    }, delay);
+}
+
+function toggleMoreCatRain(amount = 3000, delay = 10) {
+    let count = 0;
+    catRainInterval = setInterval(() => {
+        if (count >= amount) {
+            clearInterval(catRainInterval);
+            return;
+        }
+        const cat = document.createElement("div");
+        cat.className = "cat";
+        cat.style.setProperty('--x', Math.random());
+        cat.style.animationDuration = (2 + Math.random() * 2) + "s";
+        cat.textContent = Math.random() < 0.5 ? "🐱" : "😺";
+        document.body.appendChild(cat);
+        setTimeout(() => cat.remove(), 4000);
+        count++;
+    }, delay);
+}
+
+function triggerChaos() {
+    if (specialModeActive) return;
+    specialModeActive = true;
+    localStorage.setItem("chaos", "true");
+    document.body.classList.add("rotated");
+    setTimeout(() => {
+        alert("Oops! We broke the matrix. Someone not call Neo!");
+        document.getElementById("repair-btn").style.display = "inline-block";
+        document.getElementById("reparieren").style.display = "block";
+        document.getElementById("arrow").style.display = "block";
+    }, 1000);
+}
+
+function showQuiz() {
+    const randomIndex = Math.floor(Math.random() * quizData.length);
+    quizIndex = randomIndex;
+    document.getElementById("quiz-question").textContent = quizData[quizIndex].frage;
+    document.getElementById("quiz-question").style.color = "black";
+    document.getElementById("quiz-answer").value = "";
+    document.getElementById("quiz-modal").style.display = "block";
+    document.getElementById("quiz-overlay").style.display = "block";
+}
+
+function checkQuizAnswer() {
+    const input = document.getElementById("quiz-answer").value.trim().toLowerCase();
+    const correct = quizData[quizIndex].antwort.toLowerCase();
+    if (input === correct) {
+        alert("Systemzustand wiederhergestellt.");
+        document.body.classList.remove("rotated");
+        document.getElementById("quiz-modal").style.display = "none";
+        document.getElementById("quiz-overlay").style.display = "none";
+        document.getElementById("repair-btn").style.display = "none";
+        document.getElementById("reparieren").style.display = "none";
+        document.getElementById("arrow").style.display = "none";
+        specialModeActive = false;
+        localStorage.removeItem("chaos");
+    } else {
+        alert("Leider falsch. Versuch's nochmal!");
+    }
+}
+
+function throwConfetti(event) {
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: {
+          x: event.clientX / window.innerWidth,
+          y: event.clientY / window.innerHeight
+        }
+    });
+
+    const funButtons = document.getElementById("fun-buttons");
+    if (funButtons) {
+        funButtons.style.display = "flex";
+        funButtons.style.justifyContent = "left";
+        funButtons.style.marginTop = "1rem";
+    }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("chaos") === "true") {
+        document.body.classList.add("rotated");
+        specialModeActive = true;
+        document.getElementById("repair-btn").style.display = "inline-block";
+        const reparieren = document.getElementById("reparieren");
+        if (reparieren) reparieren.style.display = "block";
+        const arrow = document.getElementById("arrow");
+        if (arrow) arrow.style.display = "block";
+    }
+});
+</script>
 
 </body>
 </html>
-
-
-
-
-
-
