@@ -79,6 +79,62 @@
   </div>
 
 <script>
+function normalizeISBN(isbn) {
+  return (isbn || "").replace(/-/g, "").replace(/\s+/g, "").trim();
+}
+
+function isbn10to13(isbn10) {
+  if (!isbn10 || isbn10.length !== 10) return null;
+
+  const core = "978" + isbn10.substring(0, 9);
+
+  let sum = 0;
+  for (let i = 0; i < core.length; i++) {
+    const digit = parseInt(core[i]);
+    sum += (i % 2 === 0) ? digit : digit * 3;
+  }
+
+  const check = (10 - (sum % 10)) % 10;
+  return core + check;
+}
+
+function isbn13to10(isbn13) {
+  if (!isbn13 || isbn13.length !== 13 || !isbn13.startsWith("978")) return null;
+
+  const core = isbn13.substring(3, 12);
+
+  let sum = 0;
+  for (let i = 0; i < core.length; i++) {
+    sum += parseInt(core[i]) * (10 - i);
+  }
+
+  const remainder = sum % 11;
+  const check = (11 - remainder) % 11;
+
+  return core + (check === 10 ? "X" : check.toString());
+}
+
+function possibleISBNVariants(isbn) {
+  const base = normalizeISBN(isbn);
+  if (!base) return [];
+
+  const variants = new Set();
+  variants.add(base);
+
+  if (base.length === 10) {
+    const v13 = isbn10to13(base);
+    if (v13) variants.add(v13);
+  }
+
+  if (base.length === 13) {
+    const v10 = isbn13to10(base);
+    if (v10) variants.add(v10);
+  }
+
+  return Array.from(variants);
+}
+</script>
+<script>
   const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4';
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -356,9 +412,8 @@ async function searchBooks() {
   });
 }
 
-// Suche nach ISBN
 async function searchByISBN() {
-  const query = document.getElementById("isbnInput").value.trim().replace(/\D/g, '');
+  const query = normalizeISBN(document.getElementById("isbnInput").value);
   const resultsContainer = document.getElementById("searchResults");
   resultsContainer.innerHTML = "";
   if (!query) return;
@@ -374,13 +429,20 @@ async function searchByISBN() {
 
   const text = await medienData.text();
   const regex = /\{[^}]*"ISBN"\s*:\s*"([^"]+)"[^}]*\}/g;
+
   let match;
   const results = [];
+  const variants = possibleISBNVariants(query);
 
   while ((match = regex.exec(text)) !== null) {
     const obj = JSON.parse(match[0]);
-    if (obj.ISBN && obj.ISBN.replace(/\D/g,'').includes(query)) {
-      results.push(obj);
+
+    if (obj.ISBN) {
+      const isbnNorm = normalizeISBN(obj.ISBN);
+
+      if (variants.includes(isbnNorm)) {
+        results.push(obj);
+      }
     }
   }
 
@@ -571,7 +633,3 @@ document.getElementById("generateJsonBtn").addEventListener("click", generateJso
 
 </body>
 </html>
-
-
-
-

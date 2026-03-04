@@ -14,7 +14,7 @@
     <div class="header-div">
         <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
         <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
-    <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
+    <input type="text" id="search" placeholder="Titel oder Autor suchen... (Nachname, Vorname)" autocomplete="off" />
     <input type="text" id="isbn-search" placeholder="Optional: nach ISBN suchen..." autocomplete="off" />
 
     <p id="auswahl-info">- Empfehlungen -</p>
@@ -29,6 +29,64 @@
     <footer><p><a href="t/rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="t/kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="t/upload.html">Aktualisierung</a></p></footer>
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+function normalizeISBN(isbn) {
+    return isbn.replace(/-/g, "").trim();
+}
+
+// ISBN-10 → ISBN-13
+function isbn10to13(isbn10) {
+    if (!isbn10 || isbn10.length !== 10) return null;
+
+    const core = "978" + isbn10.substring(0, 9);
+
+    let sum = 0;
+    for (let i = 0; i < core.length; i++) {
+        const digit = parseInt(core[i]);
+        sum += (i % 2 === 0) ? digit : digit * 3;
+    }
+
+    const check = (10 - (sum % 10)) % 10;
+    return core + check;
+}
+
+// ISBN-13 → ISBN-10 (nur wenn Prefix 978 möglich)
+function isbn13to10(isbn13) {
+    if (!isbn13 || isbn13.length !== 13 || !isbn13.startsWith("978")) return null;
+
+    const core = isbn13.substring(3, 12);
+
+    let sum = 0;
+    for (let i = 0; i < core.length; i++) {
+        sum += parseInt(core[i]) * (10 - i);
+    }
+
+    const remainder = sum % 11;
+    const check = (11 - remainder) % 11;
+
+    return core + (check === 10 ? "X" : check.toString());
+}
+
+function possibleISBNVariants(isbnInput) {
+    const normalized = normalizeISBN(isbnInput);
+    if (!normalized) return [];
+
+    const variants = new Set();
+    variants.add(normalized);
+
+    if (normalized.length === 10) {
+        const isbn13 = isbn10to13(normalized);
+        if (isbn13) variants.add(isbn13);
+    }
+
+    if (normalized.length === 13) {
+        const isbn10 = isbn13to10(normalized);
+        if (isbn10) variants.add(isbn10);
+    }
+
+    return Array.from(variants);
+}
+</script>
 <script>
 const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
 const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
@@ -63,7 +121,7 @@ function setupSearch() {
 
     function starteSuche() {
         const q = searchInput.value.trim().toLowerCase();
-        const isbnQ = isbnInput.value.trim().replace(/-/g, "");
+        const isbnQ = isbnInput.value.trim();
 
         if (q.length === 0 && isbnQ.length === 0) {
             auswahlInfo.style.display = "block";
@@ -71,24 +129,26 @@ function setupSearch() {
             return;
         }
 
-    auswahlInfo.style.display = "none";
+        auswahlInfo.style.display = "none";
 
-    let gefiltert = [];
+        let gefiltert = [];
 
-    if (isbnQ.length > 0) {
-        // ISBN
-        gefiltert = medien.filter((b) => {
-            const rawIsbn = (b.ISBN || b.isbn || "").replace(/-/g, "");
-            return rawIsbn === isbnQ;
-        });
-    } else {
-        // Titel/Autor
-        gefiltert = medien.filter((b) => {
-            const titel = (b.Titel || "").toLowerCase();
-            const autor = (b.Autor || "").toLowerCase();
-            return titel.includes(q) || autor.includes(q);
-        });
-    }
+        if (isbnQ.length > 0) {
+            const variants = possibleISBNVariants(isbnQ);
+
+            gefiltert = medien.filter((b) => {
+                const rawIsbn = normalizeISBN((b.ISBN || b.isbn || ""));
+                return variants.includes(rawIsbn);
+            });
+
+        } else {
+            // Titel/Autor
+            gefiltert = medien.filter((b) => {
+                const titel = (b.Titel || "").toLowerCase();
+                const autor = (b.Autor || "").toLowerCase();
+                return titel.includes(q) || autor.includes(q);
+            });
+        }
 
         gefiltert = uniqueByISBN(gefiltert);
         renderListeOhneCover(gefiltert, container);

@@ -376,6 +376,12 @@ label[for="csvFile3"],
     .status-error {color: red;}
 /**/
 
+#uploadContainer > p {
+    max-width: 80%;
+    margin-left: 10%;
+    margin-top: 5%;
+}
+
 /* Login */
     h2 {
         color: white;
