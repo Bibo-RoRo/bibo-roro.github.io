@@ -99,7 +99,7 @@ let medien = [];
 let auswahl = [];
 
 async function ladeMedien() {
-    const { data } = client.storage.from("medien").getPublicUrl("medien.json");
+    const { data } = client.storage.from("medien").getPublicUrl("medien.json?=" + new Date());
     const res = await fetch(data.publicUrl);
     medien = await res.json();
     await ladeAuswahl();
