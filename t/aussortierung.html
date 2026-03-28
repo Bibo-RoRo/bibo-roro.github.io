@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <title>Aktualisiserung Katalog aussortierter Medien</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #15202a;
+            padding-left: 10%;
+            padding-top: 5%;
+            color: white;
+            font-size: 17px;
+        }
+
+        h1 {
+            font-size: 25px;
+            margin-left: 15px;
+        }
+
+        .box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            padding-top: 20px;
+            border-radius: 10px;
+            max-width: 40%;
+            position: relative;
+        }
+
+        input, button {
+            border: 1px solid white;
+            border-radius: 8px;
+            background-color: transparent;
+            color: white;
+            padding: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        input {
+            width: 85%;
+            font-size: 16px;
+        }
+
+        input:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px dashed white;
+        }
+
+        input::file-selector-button {
+            outline: none;
+            border: none;
+            background-color: transparent;
+            color: white;
+            margin-right: 25px;
+        }
+
+        button {
+            position: absolute;
+            right: 50px;
+            border: none;
+            text-align: center;
+            align-items: center;
+            width: 35px;
+            height: 35px;
+            background-image: url("../b/upload.png");
+            background-size: cover;
+        }
+
+        button:hover {
+            background-image: url("../b/upload-hover.png");
+        }
+
+        .progress {
+            margin-top: 30px;
+            font-weight: bold;
+        }
+
+        #log {
+            white-space: pre-wrap;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            font-size: 17px;
+        }
+
+        thead {
+            color: black;
+        }
+
+        th, td {
+            border: 1px solid white;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        th:not(:last-child) {
+            border-right: 1px solid black;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding-left: 20px;
+            }
+            
+            .box {
+                background-color: transparent;
+                padding: 0;
+                max-width: 92%;
+            }
+        
+            input {
+                width: 75%;
+            }
+            
+            button {
+                right: 5px;
+            }
+            
+            table {
+                white-space: nowrap
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Aktualisiserung Katalog aussortierter Medien</h1>
+    <div class="box">
+        <div style="display: flex;">
+            <input type="file" id="file" accept=".csv" /><br>
+            <button onclick="startImport()"></button>
+        </div>
+
+        <div class="progress" id="progress"></div>
+        <div id="log"></div>
+
+        <div id="tableContainer"></div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const log = (msg) => {
+    document.getElementById("log").textContent += msg + "\n";
+};
+
+const setProgress = (msg) => {
+    document.getElementById("progress").textContent = msg;
+};
+
+function renderTable(data) {
+    const container = document.getElementById("tableContainer");
+
+    let html = "<table><thead><tr>" +
+        "<th>Title</th><th>Author</th><th>Published</th><th>ISBN</th>" +
+        "</tr></thead><tbody>";
+
+    data.forEach(r => {
+        html += "<tr>" +
+            "<td>" + (r.title || "") + "</td>" +
+            "<td>" + (r.author || "") + "</td>" +
+            "<td>" + (r.publishedDate || "") + "</td>" +
+            "<td>" + (r.isbn || "") + "</td>" +
+        "</tr>";
+    });
+
+    html += "</tbody></table>";
+
+    container.innerHTML = html;
+}
+
+function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+
+    const headers = lines[0].split(";").map(h => h.trim());
+
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+
+        const cols = lines[i].split(";");
+
+        const row = {};
+        headers.forEach((h, idx) => {
+            row[h] = (cols[idx] ?? "").replace(/^"|"$/g, "").trim();
+        });
+
+        data.push(row);
+    }
+
+    return { headers, data };
+}
+
+function chunkArray(arr, size) {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+}
+
+async function startImport() {
+    const file = document.getElementById("file").files[0];
+
+    if (!file) {
+        alert("Bitte CSV auswählen");
+        return;
+    }
+
+    document.getElementById("log").textContent = "";
+    document.getElementById("tableContainer").innerHTML = ""; // NEU reset
+    setProgress("Lese Datei...");
+
+    const text = await file.text();
+    const { data } = parseCSV(text);
+
+    log("Zeilen gefunden: " + data.length);
+
+    const mapped = data.map(r => ({
+        title: r.title || "",
+        author: r.author || "",
+        publishedDate: r.publishedDate || "",
+        isbn: r.isbn || ""
+    }));
+
+    mapped.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    renderTable(mapped);
+
+    const chunks = chunkArray(mapped, 500);
+
+    log("Chunks: " + chunks.length);
+
+    for (let i = 0; i < chunks.length; i++) {
+        setProgress(`Upload ${i+1}/${chunks.length}`);
+
+        const { error } = await client
+            .from("aussortiert")
+            .insert(chunks[i]);
+
+        if (error) {
+            log("FEHLER bei Chunk " + i + ": " + error.message);
+            console.error(error);
+            return;
+        }
+
+        log(`Chunk ${i+1} ok (${chunks[i].length} Einträge)`);
+    }
+
+    setProgress("Fertig!");
+    log("Import abgeschlossen.");
+}
+</script>
+
+</body>
+</html>
