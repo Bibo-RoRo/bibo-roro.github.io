@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Display</title>
+
+<style>
+body {
+  background: black;
+  overflow: hidden;
+}
+
+img {
+  position: absolute;
+  height: 80%;
+  margin-top: 5%;
+  margin-left: 30%;
+  width: auto;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.4s ease;
+}
+
+img.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    img {
+        margin-left: 5%;
+        margin-right: 5%;
+        width: 85%;
+        height: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<img id="img" />
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let lastStatus = -1;
+
+const img = document.getElementById("img");
+
+function getImageUrl(status) {
+  if (status === 0) return "";
+  return `${SUPABASE_URL}/storage/v1/object/public/insta/${status}.png`;
+}
+
+// Animation
+function showImage(url) {
+  const newImg = new Image();
+  newImg.src = url;
+
+  newImg.onload = () => {
+    img.classList.remove("show");
+
+    setTimeout(() => {
+      img.src = url;
+      img.classList.add("show");
+    }, 200);
+  };
+}
+
+// Polling (stabil für Schule)
+async function check() {
+  let { data } = await client.from("insta").select("*").eq("id", 1).single();
+
+  if (data.status !== lastStatus) {
+    lastStatus = data.status;
+    console.log(lastStatus);
+
+    if (lastStatus === 0) {
+      img.classList.remove("show");
+      img.src = "";
+    } else {
+      showImage(getImageUrl(lastStatus));
+      console.log("IMG geladen:", lastStatus)
+    }
+  }
+}
+
+setInterval(check, 500);
+check();
+</script>
+
+</body>
+</html>
