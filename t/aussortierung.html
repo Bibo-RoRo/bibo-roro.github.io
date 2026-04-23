@@ -193,7 +193,6 @@ function renderTable(data) {
 
 function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
-
     const headers = lines[0].split(";").map(h => h.trim());
 
     const data = [];
@@ -222,6 +221,28 @@ function chunkArray(arr, size) {
     return chunks;
 }
 
+async function filterExistingISBNs(chunk) {
+    const isbns = chunk
+        .map(r => r.isbn)
+        .filter(i => i && i.trim() !== "");
+
+    if (isbns.length === 0) return chunk;
+
+    const { data, error } = await client
+        .from("aussortiert")
+        .select("isbn")
+        .in("isbn", isbns);
+
+    if (error) {
+        log("Fehler beim Prüfen vorhandener ISBNs: " + error.message);
+        throw error;
+    }
+
+    const existingISBNs = new Set(data.map(d => d.isbn));
+
+    return chunk.filter(r => !existingISBNs.has(r.isbn));
+}
+
 async function startImport() {
     const file = document.getElementById("file").files[0];
 
@@ -231,7 +252,7 @@ async function startImport() {
     }
 
     document.getElementById("log").textContent = "";
-    document.getElementById("tableContainer").innerHTML = ""; // NEU reset
+    document.getElementById("tableContainer").innerHTML = "";
     setProgress("Lese Datei...");
 
     const text = await file.text();
@@ -250,23 +271,35 @@ async function startImport() {
     renderTable(mapped);
 
     const chunks = chunkArray(mapped, 500);
-
     log("Chunks: " + chunks.length);
 
     for (let i = 0; i < chunks.length; i++) {
-        setProgress(`Upload ${i+1}/${chunks.length}`);
+        setProgress(`Verarbeite ${i+1}/${chunks.length}`);
+
+        let filteredChunk;
+        try {
+            filteredChunk = await filterExistingISBNs(chunks[i]);
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+
+        if (filteredChunk.length === 0) {
+            log(`Chunk ${i+1}: alles bereits vorhanden → übersprungen`);
+            continue;
+        }
 
         const { error } = await client
             .from("aussortiert")
-            .insert(chunks[i]);
+            .insert(filteredChunk);
 
         if (error) {
-            log("FEHLER bei Chunk " + i + ": " + error.message);
+            log("FEHLER bei Chunk " + (i+1) + ": " + error.message);
             console.error(error);
             return;
         }
 
-        log(`Chunk ${i+1} ok (${chunks[i].length} Einträge)`);
+        log(`Chunk ${i+1}: ${filteredChunk.length} neue Einträge eingefügt`);
     }
 
     setProgress("Fertig!");
