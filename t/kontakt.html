@@ -74,10 +74,20 @@
           }
 
           .arrow {
-               margin-bottom: 2%;
-               margin-top: 3%;
                width: 50px;
                height: auto;
+          }
+          
+          body > div:nth-of-type(2) {
+              display: flex;
+              color: green;
+              gap: 30px;
+              margin-bottom: 2%;
+              margin-top: 3%;
+          }
+          
+          body > div:nth-of-type(2) p {
+                   display: none;
           }
 
           body > p {
@@ -191,7 +201,7 @@
 
                .logo {
                     width: 50%;
-                    margin-top: 5%;
+                    margin-top: 0%;
                }
 
                .bibo-h3 {
@@ -211,7 +221,15 @@
                .arrow {
                     width: 50px;
                     margin-bottom: 5%;
-                    margin-top: 10%;
+               }
+               
+               body > div:nth-of-type(2) {
+                   margin-top: 10%;
+                   margin-bottom: 10%;
+               }
+               
+               body > div:nth-of-type(2) p {
+                   margin-top: 5px;
                }
                
                body > p {
@@ -244,7 +262,10 @@
           <img class="logo" src="../b/logo.png" alt="Logo der Bibliothek">
      </div>
 
-     <a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+     <div><a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+          <p id="success">Kontaktformular erfolgreich abgesendet &check;</p>
+     </div>     
+      
       
      <p>Deine Angaben werden ausschließlich zur Bearbeitung deiner Anfrage verwendet. 
      Die Übertragung erfolgt über einen externen Dienst (<a title="Externer Link zu Github" 
@@ -256,7 +277,7 @@
 
      <form action="https://api.web3forms.com/submit" method="POST">
           <input type="hidden" name="access_key" value="04c7a79f-b120-4246-89ec-66007d545b53">
-          <input type="hidden" name="redirect" value="https://bibo-roro.github.io/t/kontakt-erfolg">
+          <input type="hidden" name="redirect" value="http://bibo-roro.github.io/t/kontakt-erfolg.html">
 
           <p>Wie dürfen wir Sie nennen? <span>What may we call you?</span></p>
           <input type="text" name="name">
@@ -278,6 +299,7 @@
 
      <footer><p><a href="rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="../index.html">Startseite</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p></footer>
 
+
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -294,28 +316,31 @@ fileInput.addEventListener("change", async () => {
      const file = fileInput.files[0];
      if (!file) return;
 
-     const date = new Date().toISOString();
-     const filePath = `${file.name}+${date}`;
+     const date = Date.now();
+     const filePath = `${date}-${file.name}`;
 
      const { error } = await supabase
      .storage
-     .from("form")
+     .from("kontaktformular")
      .upload(filePath, file);
 
      if (error) {
-     alert("Upload fehlgeschlagen");
-     console.error(error);
-     return;
+          alert("Upload fehlgeschlagen");
+          console.error(error);
+          return;
      }
 
      const { data } = supabase
      .storage
-     .from("uploads")
+     .from("kontaktformular")
      .getPublicUrl(filePath);
 
      fileNameField.style.display = "block";
      fileNameField.value = file.name;
-     fileUrlField.value = data.publicUrl;
+     
+     if (fileUrlField) {
+          fileUrlField.value = data.publicUrl;
+     }
 });
 </script>
 
