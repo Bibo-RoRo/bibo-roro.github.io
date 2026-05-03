@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -206,12 +207,33 @@
 <footer><p><a href="rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p></footer>    
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
 const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
-
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let bewertung = 0;
+
+async function login() {
+    const email = "bibo@example.com";
+    let password = prompt("Bitte Passwort eingeben. Das Passwort ist das selbe wie für den Online-Katalog.");
+
+    if (!password) {
+        alert("Login abgebrochen");
+        return false;
+    }
+
+    const { data, error } = await client.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    if (error) {
+        alert("Falsches Passwort! Um es erneut zu probieren, die Seite neuladen");
+        return false;
+    }
+
+    return true;
+}
 
 function zeigeDurchschnitt(avg) {
     const container = document.getElementById("durchschnitt");
@@ -293,13 +315,20 @@ async function ladeBewertungen() {
             </div>
         `;
 
-         liste.appendChild(div);
+        liste.appendChild(div);
     });
 }
-    
-ladeBewertungen();
-ladeDurchschnitt();
-</script>    
+
+async function init() {
+    const success = await login();
+    if (!success) return;
+
+    ladeBewertungen();
+    ladeDurchschnitt();
+}
+
+init();
+</script>
 
 </body>
 </html>
