@@ -17,6 +17,11 @@ body {
     background-position: top;
 }
 
+body.feedback, body.feedbackback {
+    background-image: none;
+    background-color: #EADDCA;
+}
+
 h1 {
     margin: 0;
     text-align: center; 
@@ -571,5 +576,4 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
-
 

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Bibliothek RoRo | Feedbackback</title>
+    <meta name="author" content="&Eacute;mile Jeremias Ruff">
+    <link rel="icon" type="image/png" href="favicon.ico">
+    <link rel="stylesheet" href="../stylesheet.css" type="text/css">
+   
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background-color: #EADDCA;
+            font-family: 'Lora', serif;
+            max-width: 80%;
+            margin: auto;
+            padding: 1rem;
+            color: black !important;
+        }
+
+        h1, h3 {
+            margin: 0;
+            text-align: center;    
+        }
+
+        h1 {
+             min-width: 225px;
+        }
+
+        h3 {
+             padding-bottom: 30px;
+        }
+
+        hr {
+            background-color: black;
+        }
+
+        .header-div {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-texts {
+            flex: 1;
+            text-align: center;
+        }
+
+        .bibo-h3 {
+            font-weight: bold;
+            margin-left: 40%;
+            margin-top: 3%;
+        }
+
+        .bibo-h3 a {
+            text-decoration: none;
+            color: inherit;
+            margin-left: 14%;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-left: 0;
+        }
+
+        .arrow {
+            margin-bottom: 2%;
+            margin-top: 3%;
+            width: 50px;
+            height: auto;
+        }
+
+        body > div:nth-of-type(2) {
+            display: flex;
+            position: relative;
+            width: 40%;
+            margin-top: 80px;
+            font-size: 20px;
+            padding-bottom: 70px;
+        }
+
+        body > div:nth-of-type(2) h3 {
+            margin-right: 20px;
+        }
+
+        #durchschnitt span {
+            position: absolute;
+            margin-left: 15px;
+        }
+
+        #liste {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15%;
+        }
+
+        #liste > div {   
+            width: 40%;
+            border-top: 1px solid black;
+            border-left: 1px solid black;
+            padding-top: 15px;
+            margin-bottom: 30px;
+        }
+
+        #liste > div * {
+            margin-left: 5px;
+        }
+
+        #liste > div p {
+            margin-top: 5px;
+        }
+
+        .kommentar {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .kommentar img, #durchschnitt img {
+            width: 40px;
+        }
+
+        footer {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header-div {
+                flex-direction: column-reverse;
+                align-items: center;
+                text-align: center;
+                gap: 0;
+                margin-top: 15%;
+            }
+
+            .logo {
+                width: 50%;
+                margin-top: 5%;
+            }
+
+            .bibo-h3 {
+                margin-top: 2%;
+                margin-left: 0%;
+                width: 100%;
+            }
+
+            .bibo-h3 a {
+                margin-left: 2px;
+            }
+
+            .arrow {
+                width: 50px;
+                margin-bottom: 5%;
+                margin-top: 10%;
+            }
+
+            body > div:nth-of-type(2) {
+                display: block;
+            }
+
+            #durchschnitt {
+                display: flex;
+            }
+
+            #durchschnitt h3 {
+                padding-bottom: 20px;
+            }
+
+            #durchschnitt span {
+                position: unset;
+            }
+
+            #liste {
+                display: block;
+            }
+
+            #liste > div {
+                width: 100%;
+            }
+
+            footer {
+                margin-top: 80px;
+            }
+        }
+    </style>
+</head>
+<body class="feedbackback">    
+
+<div class="header-div">
+          <div class="bibo-h3"><a href="../index.html">Bibliothekskatalog RoRo</a>
+                               <h1>- Feedbackback -</h1></div>
+          <img class="logo" src="../b/logo.png" alt="Logo der Bibliothek">
+</div>
+<a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+
+<div><h3>Durchschnitt:</h3>
+     <div id="durchschnitt"></div></div>
+<div id="liste"></div>
+    
+<footer><p><a href="rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p></footer>    
+    
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let bewertung = 0;
+
+function zeigeDurchschnitt(avg) {
+    const container = document.getElementById("durchschnitt");
+    container.innerHTML = "";
+
+    const wert = Math.round(avg);
+
+    for (let i = 1; i <= 5; i++) {
+        const img = document.createElement("img");
+        img.width = 25;
+
+        if (i <= wert) {
+            img.src = "../b/buch-voll.png";
+        } else {
+            img.src = "../b/buch-leer.png";
+        }
+
+        container.appendChild(img);
+    }
+
+    const text = document.createElement("span");
+    text.innerText = " (" + avg + ")";
+    container.appendChild(text);
+}
+
+async function ladeDurchschnitt() {
+    const { data, error } = await client
+        .from('bewertungen')
+        .select('rating');
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    if (data.length === 0) {
+        document.getElementById('durchschnitt').innerText = "Keine Bewertungen";
+        return;
+    }
+
+    const summe = data.reduce((acc, cur) => acc + cur.rating, 0);
+    const avg = (summe / data.length).toFixed(1);
+
+    zeigeDurchschnitt(avg);
+}
+
+async function ladeBewertungen() {
+    const { data, error } = await client
+        .from('bewertungen')
+        .select('*')
+        .not('kommentar', 'is', null)
+        .neq('kommentar', '')
+        .order('created_at', { ascending: false });
+
+    const liste = document.getElementById('liste');
+    liste.innerHTML = "";
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    data.forEach(eintrag => {
+        const div = document.createElement('div');
+
+        let buchnHTML = "";
+        for (let i = 1; i <= 5; i++) {
+            if (i <= eintrag.rating) {
+                buchnHTML += `<img src="../b/buch-voll.png">`;
+            } else {
+                buchnHTML += `<img src="../b/buch-leer.png">`;
+            }
+        }
+
+        div.innerHTML = `
+            <div class="kommentar">
+                <div>${buchnHTML}</div>
+                <p>${eintrag.kommentar}</p>
+            </div>
+        `;
+
+         liste.appendChild(div);
+    });
+}
+    
+ladeBewertungen();
+ladeDurchschnitt();
+</script>    
+
+</body>
+</html>

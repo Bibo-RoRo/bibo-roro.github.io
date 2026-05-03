@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Bibliothek RoRo | Feedback</title>
+    <meta name="author" content="&Eacute;mile Jeremias Ruff">
+    <link rel="icon" type="image/png" href="favicon.ico">
+    <link rel="stylesheet" href="../stylesheet.css" type="text/css">
+   
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background-color: #EADDCA;
+            font-family: 'Lora', serif;
+            max-width: 80%;
+            margin: auto;
+            padding: 1rem;
+            color: black !important;
+        }
+        
+        h1, h3 {
+            margin: 0;
+            text-align: center;    
+        }
+
+        h1 {
+            min-width: 225px;
+        }
+
+        h3 {
+            padding-bottom: 30px;
+        }
+
+        .header-div {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-texts {
+            flex: 1;
+            text-align: center;
+        }
+
+        .bibo-h3 {
+            font-weight: bold;
+            margin-left: 40%;
+            margin-top: 3%;
+        }
+
+        .bibo-h3 a {
+            text-decoration: none;
+            color: inherit;
+            margin-left: 7%;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-left: 0;
+        }
+
+        .arrow {
+            margin-bottom: 2%;
+            margin-top: 3%;
+            width: 50px;
+            height: auto;
+        }
+        
+        #create {
+            margin-top: 50px;
+        }
+        
+        #starContainer img {
+            width: 50px;
+        }
+        
+        #kommentar {
+            width: 90%;
+            height: 30vh;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        
+        #kommentar:focus {
+            outline: none;
+            font-size: 20px;
+        }
+        
+        #absenden {
+            background-color: transparent;
+            border: 1px solid black;
+            padding: 10px 5px;
+            width: 100px;
+            border-radius: 5px;
+            margin-top: -40vh;
+            margin-left: 80%;
+        }
+        
+        #absenden:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 1px dashed black;
+        }
+        
+        #danke {
+            display: none;
+            font-size: 20px;
+        }
+        
+        footer {
+            color: white;
+            margin-top: 30%;
+        }
+        
+        @media (max-width: 768px) {
+            .header-div {
+                flex-direction: column-reverse;
+                align-items: center;
+                text-align: center;
+                gap: 0;
+                margin-top: 15%;
+            }
+
+            .logo {
+                width: 50%;
+                margin-top: 5%;
+            }
+
+            .bibo-h3 {
+                margin-top: 2%;
+                margin-left: 0%;
+                width: 100%;
+            }
+
+            .bibo-h3 a {
+                margin-left: 2px;
+            }
+
+            .arrow {
+                width: 50px;
+                margin-bottom: 5%;
+                margin-top: 10%;
+            }
+        
+            #create {
+                margin-top: 10%;
+            }
+
+            #absenden {
+                margin-top: 20px;
+                margin-left: 65%;
+            }
+        }
+    </style>
+</head>
+<body class="feedback">
+
+<div class="header-div">
+    <div class="bibo-h3"><a href="../index.html">Bibliothekskatalog RoRo</a>
+                         <h1>- Feedback -</h1></div>
+    <img class="logo" src="../b/logo.png" alt="Logo der Bibliothek"></div>
+
+<a href="../index.html"><img class="arrow" src="../b/arrow.png" alt="Zurück zum Start"></a>
+
+<div id="create">
+    <div id="starContainer">
+        <img src="../b/buch-voll.png" data-value="1">
+        <img src="../b/buch-leer.png" data-value="2">
+        <img src="../b/buch-leer.png" data-value="3">
+        <img src="../b/buch-leer.png" data-value="4">
+        <img src="../b/buch-leer.png" data-value="5">
+    </div>
+
+    <textarea id="kommentar" placeholder="Dein Kommentar"></textarea>
+    <button id="absenden">Absenden</button>
+</div>
+
+<div id="danke"><p>Dankeschön (:</p></div>
+
+<footer><p><a href="rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="upload.html">Aktualisierung</a></p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let bewertung = 0;
+const buchn = document.querySelectorAll('#starContainer img');
+
+buchn.forEach(buch => {
+    buch.addEventListener('click', () => {
+        bewertung = parseInt(buch.getAttribute('data-value'));
+        buchn.forEach(k => {
+            const val = parseInt(k.getAttribute('data-value'));
+            if (val <= bewertung) {
+                k.src = "../b/buch-voll.png";
+            } else {
+                k.src = "../b/buch-leer.png";
+            }
+        });
+    });
+});
+
+// speichern
+document.getElementById('absenden').addEventListener('click', async () => {
+    const kommentar = document.getElementById('kommentar').value;
+
+    if (bewertung === 0) {
+        alert("Bitte Bewertung abgeben");
+        return;
+    }
+
+    const { error } = await client
+        .from('bewertungen')
+        .insert([
+          {
+            kommentar: kommentar,
+            rating: bewertung
+          }
+        ]);
+      
+    const create = document.getElementById("create");
+    const danke = document.getElementById("danke");
+
+    if (error) {
+        alert("Fehler beim Speichern");
+        console.error(error);
+    } else {
+        document.getElementById('kommentar').value = "";
+        bewertung = 0;
+        create.style.display = "none";
+        danke.style.display = "block";
+
+        buchn.forEach(k => k.src = "../b/buch-leer.png");
+    }
+});
+</script>
+
+</body>
+</html>
