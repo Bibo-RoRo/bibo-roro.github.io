@@ -1,0 +1,37 @@
+name: Sync Covers from Supabase
+
+on:
+  repository_dispatch:
+    types: [sync-covers]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup folders
+        run: mkdir -p covers
+
+      - name: Download files from Supabase Storage
+        run: |
+          echo "Downloading files..."
+
+          for file in $(echo '${{ toJson(github.event.client_payload.files) }}' | jq -r '.[]'); do
+            echo "Fetching $file"
+
+            curl -L \
+              "https://euuptkidjsquvhohvicv/storage/v1/object/public/uploaded_cover/$file" \
+              --output "covers/$file"
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add covers/
+          git commit -m "Sync covers" || echo "No changes"
+          git push
