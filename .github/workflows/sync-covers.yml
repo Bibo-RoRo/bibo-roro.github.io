@@ -1,8 +1,12 @@
 name: Sync Covers from Supabase
 
 on:
-  repository_dispatch:
-    types: [sync-covers]
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "List of files from Supabase"
+        required: true
+        type: string
 
 jobs:
   upload:
@@ -15,15 +19,21 @@ jobs:
       - name: Setup folders
         run: mkdir -p covers
 
+      - name: Decode file list
+        id: parse
+        run: |
+          echo '${{ inputs.files }}' > files.json
+          cat files.json
+
       - name: Download files from Supabase Storage
         run: |
           echo "Downloading files..."
 
-          for file in $(echo '${{ toJson(github.event.client_payload.files) }}' | jq -r '.[]'); do
+          for file in $(echo '${{ inputs.files }}' | jq -r '.[]'); do
             echo "Fetching $file"
 
             curl -L \
-              "https://euuptkidjsquvhohvicv/storage/v1/object/public/uploaded_cover/$file" \
+              "https://euuptkidjsquvhohvicv.supabase.co/storage/v1/object/public/uploaded_cover/$file" \
               --output "covers/$file"
           done
 
@@ -33,5 +43,7 @@ jobs:
           git config user.email "actions@github.com"
 
           git add covers/
-          git commit -m "Sync covers" || echo "No changes"
+
+          git commit -m "Sync covers" || echo "No changes to commit"
+
           git push
