@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <title>Bibokatalog RoRo</title>
-    <meta name="author" content="&Eacute;mile Jeremias Ruff">
+    <meta name="author" content="Émile Jeremias Ruff">
     <meta name="description" content="Finde Bücher, Fachliteratur und Medien für Unterricht und Freizeit im Online-Katalog der Bibliothek des Romain-Rolland Gymnasiums Dresden" />
     <link rel="icon" type="image/png" href="favicon.ico">
 
@@ -10,25 +10,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
     <div class="header-div">
         <div class="bibo-h3"><h1>Bibliothekskatalog RoRo</h1></div>
-        <img class="logo" src="b/logo.png" alt="Logo der Bibliothek"></div>
-    <input type="text" id="search" placeholder="Titel oder Autor suchen... (Nachname, Vorname)" autocomplete="off" />
+        <img class="logo" src="b/logo.png" alt="Logo der Bibliothek">
+    </div>
+
+    <input type="text" id="search" placeholder="Titel oder Autor suchen..." autocomplete="off" />
     <input type="text" id="isbn-search" placeholder="Optional: nach ISBN suchen..." autocomplete="off" />
 
     <p id="auswahl-info">- Empfehlungen -</p>
-    
-    <div class="toggleTrigger" data-default-open="false" data-display="block"><img src="b/map.png" alt="Signaturen-Karte &#214;ffnen"></div>
-    <div class="toggleContent" style="width: 100%;"><div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;"><iframe title="R 11" frameborder="0" width="1200" height="675" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://view.genially.com/69fd851d48ec90aa346f8289" type="text/html" allowscriptaccess="always" allowfullscreen="true" scrolling="yes" allownetworking="all"></iframe> </div> </div>  
+
+    <div class="toggleTrigger" data-default-open="false" data-display="block">
+        <img src="b/map.png" alt="Signaturen-Karte öffnen">
+    </div>
+
+    <div class="toggleContent" style="width: 100%;">
+        <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+            <iframe title="R 11" frameborder="0" width="1200" height="675"
+                style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                src="https://view.genially.com/69fd851d48ec90aa346f8289"
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
 
     <div id="book-list"></div>
 
-    <div id="lightbox-overlay"><div id="lightbox-content"></div></div>
+    <div id="lightbox-overlay">
+        <div id="lightbox-content"></div>
+    </div>
 
-    <footer><p><a href="t/rechtliches.html">Rechtliches</a> &nbsp;|&nbsp; <a href="t/kontakt.html">Kontakt</a> &nbsp;|&nbsp; <a href="t/upload.html">Aktualisierung</a></p></footer>
-    
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <footer>
+        <p>
+            <a href="t/rechtliches.html">Rechtliches</a> |
+            <a href="t/kontakt.html">Kontakt</a> |
+            <a href="t/upload.html">Aktualisierung</a>
+        </p>
+    </footer>
+
 <script>
 function normalizeISBN(isbn) {
     return isbn.replace(/-/g, "").trim();
@@ -87,16 +108,120 @@ function possibleISBNVariants(isbnInput) {
     return Array.from(variants);
 }
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const GOOGLE_BOOKS_KEY = "AIzaSyB6-PVmwI_ZGy0fAUiYBtIetw5MJP9Tjy8";
 const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
-const SUPABASE_KEY = 'ds';
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true }
-});
+const SUPABASE_KEY = "ds";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let medien = [];
 let auswahl = [];
+
+/* ---------------- OPENLIBRARY CACHE ---------------- */
+
+const openLibraryCache = new Map();
+
+/* ---------------- OPENLIBRARY LOOKUP ---------------- */
+
+async function getOpenLibraryLink(isbn, titel = "", autor = "") {
+
+    const variants = isbn ? possibleISBNVariants(isbn) : [];
+
+    // Bereits im Cache?
+    for (const v of variants) {
+        if (openLibraryCache.has(v)) {
+            return openLibraryCache.get(v);
+        }
+    }
+
+    /* ---------------- ISBN LOOKUP ---------------- */
+
+    for (const v of variants) {
+        try {
+            const res = await fetch(`https://openlibrary.org/isbn/${v}.json`);
+
+            if (!res.ok) continue;
+
+            const data = await res.json();
+
+            if (data.key) {
+
+                const url = `https://openlibrary.org${data.key}`;
+
+                for (const vv of variants) {
+                    openLibraryCache.set(vv, url);
+                }
+
+                return url;
+            }
+
+        } catch (err) {
+            console.warn("OpenLibrary ISBN Lookup fehlgeschlagen:", err);
+        }
+    }
+
+    /* ---------------- FALLBACK: TITLE + AUTHOR SEARCH ---------------- */
+
+    try {
+
+        const queryParts = [];
+
+        if (titel) queryParts.push(titel);
+        if (autor) queryParts.push(autor);
+
+        if (queryParts.length > 0) {
+
+            const query = encodeURIComponent(queryParts.join(" "));
+
+            const res = await fetch(
+                `https://openlibrary.org/search.json?q=${query}&limit=1`
+            );
+
+            if (res.ok) {
+
+                const data = await res.json();
+
+                if (data.docs && data.docs.length > 0) {
+
+                    const doc = data.docs[0];
+
+                    let url = null;
+
+                    // bevorzugt works-Seite
+                    if (doc.key) {
+                        url = `https://openlibrary.org${doc.key}`;
+                    }
+
+                    // fallback edition_key
+                    else if (doc.edition_key && doc.edition_key.length > 0) {
+                        url = `https://openlibrary.org/books/${doc.edition_key[0]}`;
+                    }
+
+                    if (url) {
+
+                        for (const vv of variants) {
+                            openLibraryCache.set(vv, url);
+                        }
+
+                        return url;
+                    }
+                }
+            }
+        }
+
+    } catch (err) {
+        console.warn("OpenLibrary Search Fallback fehlgeschlagen:", err);
+    }
+
+    // Negativ cachen
+    for (const vv of variants) {
+        openLibraryCache.set(vv, null);
+    }
+
+    return null;
+}
 
 async function ladeMedien() {
     const { data } = client.storage.from("medien").getPublicUrl("medien.json?=" + new Date());
@@ -110,176 +235,336 @@ async function ladeAuswahl() {
     const { data } = client.storage.from("medien").getPublicUrl("auswahl.json");
     const res = await fetch(data.publicUrl);
     auswahl = await res.json();
-    renderListeOhneCover(auswahl, document.getElementById("book-list"));
+    renderListe(auswahl, document.getElementById("book-list"));
 }
 
-function setupSearch() {
-    const searchInput = document.getElementById("search");
-    const isbnInput = document.getElementById("isbn-search");
-    const container = document.getElementById("book-list");
-    const auswahlInfo = document.getElementById("auswahl-info");
+/* ---------------- COVER LOGIK ---------------- */
 
-    function starteSuche() {
-        const q = searchInput.value.trim().toLowerCase();
-        const isbnQ = isbnInput.value.trim();
+function getLocalCover(num) {
+    return `b/cover/${num}.jpg`;
+}
 
-        if (q.length === 0 && isbnQ.length === 0) {
-            auswahlInfo.style.display = "block";
-            renderListeOhneCover(auswahl, container);
-            return;
-        }
+function getOpenLibraryCover(isbn, size = "L") {
+    return `https://covers.openlibrary.org/b/isbn/${isbn}-${size}.jpg`;
+}
 
-        auswahlInfo.style.display = "none";
+function getFallbackCover() {
+    return "b/thumbnail.png";
+}
 
-        let gefiltert = [];
+/* ---------------- LAZY LOADING ---------------- */
 
-        if (isbnQ.length > 0) {
-            const variants = possibleISBNVariants(isbnQ);
+const coverObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
 
-            gefiltert = medien.filter((b) => {
-                const rawIsbn = normalizeISBN((b.ISBN || b.isbn || ""));
-                return variants.includes(rawIsbn);
-            });
+        const img = entry.target;
+        coverObserver.unobserve(img);
 
-        } else {
-            // Titel/Autor
-            gefiltert = medien.filter((b) => {
-                const titel = (b.Titel || "").toLowerCase();
-                const autor = (b.Autor || "").toLowerCase();
-                return titel.includes(q) || autor.includes(q);
-            });
-        }
+        const nummer = img.dataset.nummer;
+        const isbn = img.dataset.isbn;
 
-        gefiltert = uniqueByISBN(gefiltert);
-        renderListeOhneCover(gefiltert, container);
+        loadCover(img, nummer, isbn);
+    }
+}, { rootMargin: "150px" });
+
+const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+function loadCover(img, nummer, isbn, allowMobile = false) {
+    if (isMobile && !allowMobile) return;
+
+    if (nummer) {
+        img.src = getLocalCover(nummer);
+        img.onerror = () => tryOpenLibrary(img, isbn);
+        return;
     }
 
-    searchInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") starteSuche();
-    });
-
-    isbnInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") starteSuche();
-    });
+    tryOpenLibrary(img, isbn);
 }
 
-function uniqueByISBN(arr) {
-const seen = new Set();
-return arr.filter((item) => {
-    const rawIsbn = (item.ISBN || item.isbn || "").trim();
-    if (!rawIsbn) return true; // Behalte Einträge ohne ISBN
-    const isbn = rawIsbn.replace(/-/g, "");
-    if (seen.has(isbn)) return false;
-    seen.add(isbn);
-    return true;
-});
+function tryOpenLibrary(img, isbn) {
+
+    if (!isbn) {
+        img.src = getFallbackCover();
+        return;
+    }
+
+    let step = 0;
+
+    function loadNext() {
+
+        step++;
+
+        if (step === 1) {
+            img.src = getOpenLibraryCover(isbn, "L");
+        }
+
+        else if (step === 2) {
+            img.src = getOpenLibraryCover(isbn, "M");
+        }
+
+        else {
+            img.src = getFallbackCover();
+        }
+    }
+
+    img.onload = () => {
+
+        // Dummybilder erkennen
+        if (img.naturalWidth < 10) {
+            loadNext();
+        }
+    };
+
+    img.onerror = loadNext;
+
+    loadNext();
 }
 
-function renderListeOhneCover(liste, container) {
+/* ---------------- LISTE ---------------- */
+
+function renderListe(liste, container) {
+
     container.innerHTML = "";
+
     for (const b of liste) {
+
         const div = document.createElement("div");
         div.className = "book";
-        div.dataset.details = JSON.stringify(b);
-        div.innerHTML = `
-            <div class="book-details">
-                <div class="book-header">
-                    <div>
-                        <div class="book-title"><span>${b.Titel || "Ohne Titel"}</span> <span>${b.Untertitel ? ` ...${b.Untertitel}` : ""}</span></div>
-                        <div class="book-author">${b.Autor || "Unbekannter Autor"}</div>
+
+        const img = document.createElement("img");
+
+        img.className = "book-cover";
+        img.alt = b.Titel || "Cover";
+
+        img.dataset.nummer = b.Nummer || "";
+        img.dataset.isbn = normalizeISBN(b.ISBN || b.isbn || "");
+
+        img.src = "b/thumbnail.png";
+
+        coverObserver.observe(img);
+
+        const signaturRaw = b.Signatur || "-";
+
+        let signaturAnzeige = signaturRaw;
+
+        if (signaturAnzeige.toLowerCase().includes("ohne sign")) {
+            signaturAnzeige = "[...]";
+        }
+
+        if (signaturAnzeige.length > 25) {
+            signaturAnzeige = signaturAnzeige.slice(0, 22) + "...";
+        }
+
+        const info = document.createElement("div");
+
+        info.innerHTML = `
+            <div class="book-header">
+                <div>
+                    <div class="book-title">
+                        <span>${b.Titel || "Ohne Titel"}</span>
+                        <span>${b.Untertitel ? ` ...${b.Untertitel}` : ""}</span>
                     </div>
-                    <div class="book-signature">${b.Signatur || "-"}</div>
+
+                    <div class="book-author">
+                        ${b.Autor || "Unbekannter Autor"}
+                    </div>
                 </div>
-                <div class="book-meta">MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp; ISBN: ${(b.ISBN || b.isbn || "-")}</div>
+
+                <div class="book-signature">
+                    ${signaturAnzeige}
+                </div>
+            </div>
+
+            <div class="book-meta">
+                MeNummer: ${b.Nummer || "-"} &nbsp;|&nbsp;
+                ISBN: ${(b.ISBN || b.isbn || "-")}
             </div>
         `;
-        div.addEventListener("click", () => zeigeLightbox(b));
+
+        div.appendChild(img);
+        div.appendChild(info);
+
+        div.addEventListener("click", () => zeigeLightbox(b, img));
+
         container.appendChild(div);
     }
 }
 
-async function holeCoverURL(isbn) {
-    if (!isbn) return { url: "b/thumbnail.png", source: "Keine Quelle" };
-    const olUrlLarge = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+/* ---------------- LIGHTBOX ---------------- */
 
-    async function pruefeBild(url) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(img.width > 50 && img.height > 50);
-            img.onerror = () => resolve(false);
-            img.src = url;
-        });
-    }
+async function zeigeLightbox(buch, originalImg = null) {
 
-    if (await pruefeBild(olUrlLarge)) return { url: olUrlLarge, source: "OpenLibrary" };
-
-    try {
-        const googleRes = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_KEY}`
-        );
-        const googleData = await googleRes.json();
-        const imgLinks = googleData.items?.[0]?.volumeInfo?.imageLinks;
-        if (imgLinks?.thumbnail) {
-            return { url: imgLinks.thumbnail.replace("http:", "https:"), source: "Google Books" };
-        }
-    } catch {}
-
-    const olUrlMedium = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-    if (await pruefeBild(olUrlMedium)) return { url: olUrlMedium, source: "OpenLibrary" };
-
-    return { url: "b/thumbnail.png", source: "Keine Quelle" };
-}
-
-async function zeigeLightbox(buch) {
     const overlay = document.getElementById("lightbox-overlay");
     const content = document.getElementById("lightbox-content");
 
-    let coverHtml = "";
-    let quelle = "Keine Quelle";
-    const isbnRaw = (buch.ISBN || buch.isbn || "").toString().trim();
+    const nummer = buch.Nummer;
+    const isbn = normalizeISBN(buch.ISBN || buch.isbn || "");
 
-    if (isbnRaw) {
-        const isbn = isbnRaw.replace(/-/g, "");
-        const { url, source } = await holeCoverURL(isbn);
-        coverHtml = `<img class="search-cover" src="${url}" alt="Cover von ${buch.Titel || 'Unbekannt'}" />`;
+    content.innerHTML = "";
 
-        if (source === "OpenLibrary") {
-            quelle = `<a href="https://openlibrary.org/isbn/${isbn}" target="_blank" rel="noopener">OpenLibrary</a>`;
-        } else if (source === "Google Books") {
-            quelle = `<a href="https://www.google.com/search?tbm=bks&q=isbn:${isbn}" target="_blank" rel="noopener">Google Books</a>`;
-        } else {
-            quelle = "-";
+    let img;
+
+    // Bild übernehmen
+    if (originalImg) {
+
+        img = originalImg.cloneNode();
+
+        if (isMobile) {
+            loadCover(img, nummer, isbn, true);
         }
+
     } else {
-        coverHtml = `<img src="b/thumbnail.png" alt="Kein Cover verfÃ¼gbar" />`;
+
+        img = document.createElement("img");
+
+        img.className = "search-cover";
+
+        img.dataset.nummer = nummer || "";
+        img.dataset.isbn = isbn || "";
+
+        img.src = getFallbackCover();
+
+        loadCover(img, nummer, isbn, true);
     }
 
-    content.innerHTML = `
-        ${coverHtml}
-        <div class="book-info">
-            <div class="label">Titel:</div><div>${buch.Titel || "Ohne Titel"}</div>
-            <div class="label">Untertitel:</div><div>${buch.Untertitel  || "Ohne Untertitel"}</div>
-            <div class="label">Autor:</div><div>${buch.Autor || "Unbekannter Autor"}</div>
-            <div class="label">Signatur:</div><div>${buch.Signatur || "-"}</div>
-            <div></div><div></div>
-            <div></div><div></div>
-            <div></div><div></div>
-            <div></div><div></div>
-            <div class="label">Nummer:</div><div>${buch.Nummer || "-"}</div>
-            <div class="label">ISBN:</div><div>${buch.ISBN || buch.isbn || "-"}</div>
-            <div></div><div></div><div></div><div></div>
-            <div></div><div></div><div></div><div></div>
-            <div class="label">Covereintrag:</div><div>${quelle}</div>
-        </div>
+    img.classList.add("search-cover");
+
+    content.appendChild(img);
+
+    /* ---------------- INFOS ---------------- */
+
+    const info = document.createElement("div");
+
+    info.className = "book-info";
+
+    info.innerHTML = `
+        <div>Titel:</div><div>${buch.Titel || "-"}</div>
+        <div>Untertitel:</div><div>${buch.Untertitel || "-"}</div>
+        <div>Autor:</div><div>${buch.Autor || "-"}</div>
+        <div>Signatur:</div><div>${buch.Signatur || "-"}</div>
+        <div>ISBN:</div><div>${buch.ISBN || "-"}</div>
+        <div>Nummer:</div><div>${buch.Nummer || "-"}</div>
+        <div>Informationen:</div><div id="openlibrary-info">Suche läuft...</div>
     `;
+
+    content.appendChild(info);
+
     overlay.style.display = "flex";
+
+    /* ---------------- OPENLIBRARY LINK ---------------- */
+
+    const openLibraryDiv = info.querySelector("#openlibrary-info");
+
+    const openLibraryUrl = await getOpenLibraryLink(
+        isbn,
+        buch.Titel || "",
+        buch.Autor || ""
+    );
+
+    if (openLibraryUrl) {
+
+        openLibraryDiv.innerHTML = `
+            <a href="${openLibraryUrl}" target="_blank" rel="noopener noreferrer">Open Library</a>
+        `;
+
+    } else {
+
+        openLibraryDiv.innerHTML = `-`;
+    }
 }
 
-document.getElementById("lightbox-overlay").addEventListener("click", function(e) {
+document.getElementById("lightbox-overlay").addEventListener("click", (e) => {
+
     if (e.target.id === "lightbox-overlay") {
-        this.style.display = "none";
+        e.target.style.display = "none";
     }
 });
+
+/* ---------------- SEARCH ---------------- */
+
+function setupSearch() {
+
+    const searchInput = document.getElementById("search");
+    const isbnInput = document.getElementById("isbn-search");
+
+    const container = document.getElementById("book-list");
+    const info = document.getElementById("auswahl-info");
+
+    function run() {
+
+        const q = searchInput.value.toLowerCase().trim();
+        const isbnQ = isbnInput.value.trim();
+
+        if (!q && !isbnQ) {
+
+            info.style.display = "block";
+
+            renderListe(auswahl, container);
+
+            return;
+        }
+
+        info.style.display = "none";
+
+        let result = medien;
+
+        if (isbnQ) {
+
+            const norm = normalizeISBN(isbnQ);
+
+            result = result.filter(b =>
+                normalizeISBN(b.ISBN || b.isbn) === norm
+            );
+
+        } else {
+
+            const qNorm = q.toLowerCase();
+
+            result = result.filter(b =>
+                (b.Titel || "").toLowerCase().includes(q) ||
+                (b.Autor || "").toLowerCase().includes(q)
+            );
+
+            result.sort((a, b) => {
+
+                const titleA = (a.Titel || "").toLowerCase();
+                const titleB = (b.Titel || "").toLowerCase();
+
+                const exactA = titleA === qNorm;
+                const exactB = titleB === qNorm;
+
+                if (exactA && !exactB) return -1;
+                if (!exactA && exactB) return 1;
+
+                return 0;
+            });
+        }
+
+        // Double-Filterung
+        const seen = new Set();
+
+        result = result.filter(b => {
+
+            const isbn = normalizeISBN(b.ISBN || b.isbn || "");
+
+            if (!isbn) return true;
+
+            if (seen.has(isbn)) return false;
+
+            seen.add(isbn);
+
+            return true;
+        });
+
+        renderListe(result, container);
+    }
+
+    searchInput.addEventListener("keypress", e => e.key === "Enter" && run());
+    isbnInput.addEventListener("keypress", e => e.key === "Enter" && run());
+}
+
+/* ---------------- START ---------------- */
 
 ladeMedien();
 </script>
