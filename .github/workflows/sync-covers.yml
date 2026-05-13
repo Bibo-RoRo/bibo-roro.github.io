@@ -20,18 +20,35 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup folders
-        run: mkdir -p b/cover
+        run: |
+          mkdir -p b/cover/{0,1,2,3,4,5,6,7,8,9}
 
       - name: Download files from Supabase Storage
         run: |
           echo "Downloading files..."
 
           for file in $(echo '${{ inputs.files }}' | jq -r '.[]'); do
+
             echo "Fetching $file"
+
+            filename=$(basename "$file")
+
+            # Endung entfernen
+            base="${filename%.*}"
+
+            # letzte Ziffer holen
+            last_digit="${base: -1}"
+
+            # falls keine Zahl -> misc
+            if [[ ! "$last_digit" =~ ^[0-9]$ ]]; then
+              last_digit="misc"
+              mkdir -p "b/cover/misc"
+            fi
 
             curl -L \
               "https://euuptkidjsquvhohvicv.supabase.co/storage/v1/object/public/uploaded_cover/$file" \
-              --output "b/cover/$file"
+              --output "b/cover/$last_digit/$filename"
+
           done
 
       - name: Commit changes
