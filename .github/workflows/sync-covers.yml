@@ -21,7 +21,7 @@ jobs:
 
       - name: Setup folders
         run: |
-          mkdir -p c/cover/{0,1,2,3,4,5,6,7,8,9}
+          mkdir -p b/cover/{0,1,2,3,4,5,6,7,8,9}
 
       - name: Download files from Supabase Storage
         run: |
@@ -42,12 +42,12 @@ jobs:
             # falls keine Zahl -> misc
             if [[ ! "$last_digit" =~ ^[0-9]$ ]]; then
               last_digit="misc"
-              mkdir -p "c/cover/misc"
+              mkdir -p "b/cover/misc"
             fi
 
             curl -L \
               "https://euuptkidjsquvhohvicv.supabase.co/storage/v1/object/public/uploaded_cover/$file" \
-              --output "c/cover/$last_digit/$filename"
+              --output "b/cover/$last_digit/$filename"
 
           done
 
@@ -56,7 +56,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add c/cover/
+          git add b/cover/
 
           git commit -m "Sync covers" || echo "No changes"
 
