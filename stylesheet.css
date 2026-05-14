@@ -17,6 +17,11 @@ body {
     background-position: top;
 }
 
+body.feedback, body.feedbackback {
+    background-image: none;
+    background-color: #EADDCA;
+}
+
 h1 {
     margin: 0;
     text-align: center; 
@@ -74,15 +79,6 @@ h1 {
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     color: black;
-    position: relative;
-    padding-right: 10px;
-}
-
-.book *:not(.book-signature, .book-cover) {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
 }
 
 .book:hover {
@@ -90,18 +86,16 @@ h1 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.book-cover {
-    width: 65px;
-    height: 100px;
+.book-details {
+    flex-grow: 1;
+    margin-left: 5px;
+    color: black;
 }
 
 .book-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-}
-
-.book-title {
 }
 
 .book-title span:nth-of-type(1) {
@@ -132,15 +126,13 @@ h1 {
     font-weight: bold;
     font-size: 40px;
     color: #666;
-    right: 40px;
-    position: absolute;
+    margin-right: 20px;
 }
 
 .book-meta {
     font-size: 0.85rem;
     color: #888;
     margin-top: 5%;
-    position: absolute;
 }
 
 #lightbox-overlay {
@@ -151,6 +143,7 @@ h1 {
     height: 100vh;
     background: rgba(0,0,0,0.8);
     display: none;
+    justify-content: center;
     align-items: center;
     z-index: 9999;
     cursor: pointer;
@@ -164,25 +157,23 @@ h1 {
     display: flex;
     gap: 20px;
     cursor: default;
-    margin-left: 20%;
 }
 
 #lightbox-content img {
+    max-width: 200px;
     height: auto;
     border-radius: 6px;
     object-fit: contain;
-    width: 40%;
 }
 
 .book-info {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0 1rem;
-    max-height: 250px;
+    max-height: 180px;
     min-height: 20vh;
     overflow-y: auto;
     color: black;
-    margin-top: 5px;
 }
 
 .book-info div {
@@ -191,22 +182,10 @@ h1 {
     line-height: 1.2;
 }
 
-.book-info div:nth-child(odd) {
+.book-info .label {
     font-weight: bold;
+    white-space: nowrap;
 }
-
-.book-info div:nth-of-type(3) {
-    margin-left: 2px;
-}
-
-.book-info div:nth-of-type(5) {
-    margin-left: 1px;
-}
-
-.book-info div:nth-of-type(8), .book-info div:nth-of-type(12) {
-    margin-bottom: 30px;
-}
-
 
 .book-info .label {
     font-weight: bold;
@@ -519,18 +498,13 @@ label[for="csvFile3"],
         width: 100vh !important;
     }
 
-    #book-list .book-cover {
-        display: none;
-    }
-
     #lightbox-content {
         flex-direction: column;
         align-items: center;
-        gap: 15px;
     }
 
     #lightbox-content img {
-        width: 95%;
+        max-width: 100%;
     }
     
     .search-cover {
@@ -559,13 +533,12 @@ label[for="csvFile3"],
     
     .book-meta {
         position: absolute;
-        bottom: 10px;          
+        bottom: 0px;          
     }
     
     .book-signature {
         white-space: nowrap;
         text-overflow: ellipsis;
-        display: none;
     }
 
     .book-info {
@@ -603,5 +576,4 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
-
 

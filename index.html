@@ -241,7 +241,10 @@ async function ladeAuswahl() {
 /* ---------------- COVER LOGIK ---------------- */
 
 function getLocalCover(num) {
-    return `b/cover/${num}.jpg`;
+    const clean = String(num).trim();
+    const lastDigit = clean.slice(-1);
+
+    return `b/cover/${lastDigit}/${clean}.jpg`;
 }
 
 function getOpenLibraryCover(isbn, size = "L") {
