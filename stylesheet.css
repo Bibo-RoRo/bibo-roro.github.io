@@ -17,11 +17,6 @@ body {
     background-position: top;
 }
 
-body.feedback, body.feedbackback {
-    background-image: none;
-    background-color: #EADDCA;
-}
-
 h1 {
     margin: 0;
     text-align: center; 
@@ -79,6 +74,15 @@ h1 {
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     color: black;
+    position: relative;
+    padding-right: 10px;
+}
+
+.book *:not(.book-signature, .book-cover) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .book:hover {
@@ -86,16 +90,18 @@ h1 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.book-details {
-    flex-grow: 1;
-    margin-left: 5px;
-    color: black;
+.book-cover {
+    width: 65px;
+    height: 100px;
 }
 
 .book-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+}
+
+.book-title {
 }
 
 .book-title span:nth-of-type(1) {
@@ -126,13 +132,15 @@ h1 {
     font-weight: bold;
     font-size: 40px;
     color: #666;
-    margin-right: 20px;
+    right: 40px;
+    position: absolute;
 }
 
 .book-meta {
     font-size: 0.85rem;
     color: #888;
     margin-top: 5%;
+    position: absolute;
 }
 
 #lightbox-overlay {
@@ -143,7 +151,6 @@ h1 {
     height: 100vh;
     background: rgba(0,0,0,0.8);
     display: none;
-    justify-content: center;
     align-items: center;
     z-index: 9999;
     cursor: pointer;
@@ -157,23 +164,25 @@ h1 {
     display: flex;
     gap: 20px;
     cursor: default;
+    margin-left: 20%;
 }
 
 #lightbox-content img {
-    max-width: 200px;
     height: auto;
     border-radius: 6px;
     object-fit: contain;
+    width: 40%;
 }
 
 .book-info {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0 1rem;
-    max-height: 180px;
+    max-height: 250px;
     min-height: 20vh;
     overflow-y: auto;
     color: black;
+    margin-top: 5px;
 }
 
 .book-info div {
@@ -182,10 +191,22 @@ h1 {
     line-height: 1.2;
 }
 
-.book-info .label {
+.book-info div:nth-child(odd) {
     font-weight: bold;
-    white-space: nowrap;
 }
+
+.book-info div:nth-of-type(3) {
+    margin-left: 2px;
+}
+
+.book-info div:nth-of-type(5) {
+    margin-left: 1px;
+}
+
+.book-info div:nth-of-type(8), .book-info div:nth-of-type(12) {
+    margin-bottom: 30px;
+}
+
 
 .book-info .label {
     font-weight: bold;
@@ -261,6 +282,13 @@ textarea {
     display: none; 
 }
 
+.json-checkbox {
+    opacity: 0.2; 
+    display: flex;
+    margin-left: 65%;
+    margin-bottom: -15px;
+}
+
 .upload-section { 
     border: 1px solid white; 
     padding: 1rem; 
@@ -276,7 +304,7 @@ textarea {
     display: flex;
 }
 
-.upload-section button:not(#searchBtn):not(#searchIsbnBtn):not(#generateJsonBtn) {
+.upload-section button:not(#searchBtn):not(#searchIsbnBtn):not(#generateJsonBtn):not(#uploadFiles):not(#scanFiles) {
     background: transparent;
     cursor: pointer;
 }
@@ -286,11 +314,22 @@ textarea {
     height: auto;
 }
 
+#uploadBtn1, #uploadBtn2, #uploadBtn3 {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+}
+
 .upload-section input:not(#searchInput):not(#isbnInput):not(#togglePreview1):not(#togglePreview3) {
     display: none;
 }
 
-label[for="csvFile1"], label[for="csvFile2"], label[for="csvFile3"] {
+label[for="csvFile1"], 
+label[for="csvFile2"], 
+label[for="csvFile3"], 
+label[for="coverInput"], 
+#scanFiles, 
+#uploadFiles {
     display: inline-block;
     border: 1px dashed white;
     padding: 0.4em 1.2em;
@@ -298,29 +337,85 @@ label[for="csvFile1"], label[for="csvFile2"], label[for="csvFile3"] {
     border-radius: 6px;
     cursor: pointer;
     max-width: 250px;
-    max-height: 20px;
     margin-right: 60px;
     margin-top: 10px;
 }
 
-label[for="csvFile1"]:hover, label[for="csvFile2"]:hover, label[for="csvFile3"]:hover {
+label[for="csvFile1"]:hover, label[for="csvFile2"]:hover, label[for="csvFile3"]:hover, label[for="coverInput"]:hover {
     border: 1px solid orange;
 }
 
 label[for="csvFile1"], 
 label[for="csvFile2"], 
 label[for="csvFile3"], 
-.upload-section button:not(#searchBtn):not(#searchIsbnBtn):not(#generateJsonBtn)  {
+label[for="coverInput"],
+.upload-section button
+:not(#searchBtn)
+:not(#searchIsbnBtn)
+:not(#generateJsonBtn)
+:not(#uploadFiles)
+:not(#scanFiles)  {
     right: 20px;
     top: 15px;
     position: absolute;
 }
 
-.json-checkbox {
-    opacity: 0.2; 
+#scanFiles {
+    margin-right: 20px;
+}
+
+#scanFiles, #uploadFiles {
+    font-size: 16px;
+    cursor: not-allowed;
+    background: transparent;
+    cursor: not-allowed;
+}
+
+#coverUpload div:nth-of-type(2) {
     display: flex;
-    margin-left: 65%;
-    margin-bottom: -15px;
+}
+
+#coverUpload div:nth-of-type(2) button.active {
+    border: 1px dashed orange;
+}
+
+#coverUpload div:nth-of-type(2) button.active:hover {
+    border: 1px solid orange;
+}
+
+#coverTable {
+    color: black;
+    display: none;
+    width: 50%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+}
+
+
+#coverTable th, #coverTable td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 10%;
+}
+
+#coverTable th  {
+    color: white;
+}
+
+#coverTable .new {
+    background: #d4ffd4;
+}
+
+#coverTable .exists {
+    background: #ffe0e0;
+}
+
+#uploadContainer > p {
+    max-width: 80%;
+    margin-left: 10%;
+    margin-top: 5%;
 }
 
 /* Section-3 */
@@ -380,12 +475,6 @@ label[for="csvFile3"],
     .status-success {color: #04A441;}
     .status-error {color: red;}
 /**/
-
-#uploadContainer > p {
-    max-width: 80%;
-    margin-left: 10%;
-    margin-top: 5%;
-}
 
 /* Login */
     h2 {
@@ -498,13 +587,18 @@ label[for="csvFile3"],
         width: 100vh !important;
     }
 
+    #book-list .book-cover {
+        display: none;
+    }
+
     #lightbox-content {
         flex-direction: column;
         align-items: center;
+        gap: 15px;
     }
 
     #lightbox-content img {
-        max-width: 100%;
+        width: 95%;
     }
     
     .search-cover {
@@ -533,12 +627,13 @@ label[for="csvFile3"],
     
     .book-meta {
         position: absolute;
-        bottom: 0px;          
+        bottom: 10px;          
     }
     
     .book-signature {
         white-space: nowrap;
         text-overflow: ellipsis;
+        display: none;
     }
 
     .book-info {
@@ -576,4 +671,5 @@ label[for="csvFile3"],
         margin-left: 76%;
     }
 }
+
 
