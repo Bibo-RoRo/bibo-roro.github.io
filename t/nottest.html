@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Push Test</title>
+</head>
+<body>
+  <h1>Push Test</h1>
+
+  <button id="enable">Enable Notifications</button>
+  <button id="send">Send Test Push (via Edge Function)</button>
+
+  <script>
+    const VAPID_PUBLIC_KEY = "BPPCawZ6SUSkAhlnnnukyrkkFubGTKDqT04k3PXE2aE3LMdey5adkfppfgDITIydSsitRRXiZmnRl2OHstk5GFw";
+
+    let subscription;
+
+    async function registerSW() {
+      const reg = await navigator.serviceWorker.register("sw.js");
+      return reg;
+    }
+
+    async function subscribe(reg) {
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+
+      subscription = sub;
+
+      await fetch("https://euuptkidjsquvhohvicv.supabase.co/functions/v1/quick-worker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub)
+      });
+
+      console.log("Subscribed:", sub);
+    }
+
+    document.getElementById("enable").onclick = async () => {
+      await Notification.requestPermission();
+
+      const reg = await registerSW();
+      await subscribe(reg);
+
+      alert("Push enabled");
+    };
+
+    document.getElementById("send").onclick = async () => {
+      await fetch("https://euuptkidjsquvhohvicv.supabase.co/functions/v1/quick-worker/send-test", {
+        method: "POST"
+      });
+    };
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+      const rawData = atob(base64);
+      return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+    }
+  </script>
+</body>
+</html>
