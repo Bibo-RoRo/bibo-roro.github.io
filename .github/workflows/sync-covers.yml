@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       files:
-        description: "List of files (newline separated)"
+        description: "List of files from Supabase"
         required: true
         type: string
 
@@ -16,40 +16,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Setup folders
-        run: mkdir -p b/cover/{0,1,2,3,4,5,6,7,8,9,misc}
-
-      - name: Download files
         run: |
-          echo "FILES:"
-          echo "${{ inputs.files }}"
+          mkdir -p b/cover/{0,1,2,3,4,5,6,7,8,9}
 
-          while IFS= read -r file; do
+      - name: Download files from Supabase Storage
+        run: |
+          echo "Downloading files..."
+
+          for file in $(echo '${{ inputs.files }}' | jq -r '.[]'); do
 
             echo "Fetching $file"
 
             filename=$(basename "$file")
+
+            # Endung entfernen
             base="${filename%.*}"
+
+            # letzte Ziffer holen
             last_digit="${base: -1}"
 
-            if ! [[ "$last_digit" =~ ^[0-9]$ ]]; then
+            # falls keine Zahl -> misc
+            if [[ ! "$last_digit" =~ ^[0-9]$ ]]; then
               last_digit="misc"
+              mkdir -p "b/cover/misc"
             fi
 
             curl -L \
               "https://euuptkidjsquvhohvicv.supabase.co/storage/v1/object/public/uploaded_cover/$file" \
               --output "b/cover/$last_digit/$filename"
 
-          done <<< "${{ inputs.files }}"
+          done
 
-      - name: Commit
+      - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
           git add b/cover/
 
-          git commit -m "sync covers" || echo "no changes"
+          git commit -m "Sync covers" || echo "No changes"
+          
           git push
