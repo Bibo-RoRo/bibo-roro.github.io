@@ -1,4 +1,4 @@
-name: Sync Covers from Supabase
+name: Sync Covers from Supabase #LOL
 
 on:
   workflow_dispatch:
