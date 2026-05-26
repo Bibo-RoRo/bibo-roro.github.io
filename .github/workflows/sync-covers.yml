@@ -1,4 +1,4 @@
-name: Sync Covers from Supabase #LOL
+name: Sync Covers from Supabase
 
 on:
   workflow_dispatch:
@@ -61,3 +61,4 @@ jobs:
           git commit -m "Sync covers" || echo "No changes"
 
           git push
+
