@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Überblick Abigag</title>
+    <meta name="author" content="Émile Jeremias Ruff">
+    <link rel="icon" type="image/png" href="favicon.ico">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            width: 89vw;
+            margin-left: 5vw;
+            background-color: #070f1b;
+            color: white;
+            overflow-x: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background-color: rgba(255,255,255,0.08);
+            border: 1px solid grey;
+            color: grey;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tab.active {
+            background-color: grey;
+            color: black;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .slider {
+            display: flex;
+            width: 200%;
+            touch-action: pan-y;
+        }
+
+        .page {
+            width: 50%;
+            flex-shrink: 0;
+            padding-bottom: 50px;
+        }
+        
+        .page:first-child {
+            padding-right: 10px;
+        }
+        
+        .search {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            padding: 8px 10px;
+            margin-bottom: 30px;
+            outline: none;
+            border: 1px solid white;
+            width: 93.5%;
+        }
+        
+        #search-abbau {
+            width: 91%;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        #table-abbau {
+            width: 97%;
+        }
+
+        table tr:nth-child(1) {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        table tr td:nth-of-type(1) {
+            color: grey;
+            border: 1px solid grey;
+            border-right: 1px solid white;
+            display: none;
+        }
+
+        table td:nth-of-type(3):hover {
+            background-color: rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+
+        table tr td:nth-of-type(3) {
+            text-align: center;
+        }
+
+        table td {
+            border: 1px solid white;
+            padding: 8px 10px;
+        }
+
+        .erledigt td:nth-child(2) {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        
+    </style>
+</head>
+<body>
+
+<div class="tabs">
+    <button class="tab active" data-page="0">Aufbau</button>
+    <button class="tab" data-page="1">Abbau</button>
+</div>
+
+<div class="slider-container">
+    <div class="slider" id="slider">
+
+        <div class="page">
+            <h1>Aufbau</h1>
+
+            <input
+                type="text"
+                id="search-aufbau"
+                class="search"
+                placeholder="Aufgabe suchen..."
+            >
+
+            <table id="table-aufbau">
+                <tr>
+                    <td>id</td>
+                    <td>Aufgabe</td>
+                    <td>Status</td>
+                    <td>Zusatz</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="page">
+            <h1>Abbau</h1>
+
+            <input
+                type="text"
+                id="search-abbau"
+                class="search"
+                placeholder="Aufgabe suchen..."
+            >
+
+            <table id="table-abbau">
+                <tr>
+                    <td>id</td>
+                    <td>Aufgabe</td>
+                    <td>Status</td>
+                    <td>Zusatz</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let aufbauData = [];
+let abbauData = [];
+
+const slider = document.getElementById("slider");
+const tabs = document.querySelectorAll(".tab");
+
+let currentPage = 0;
+let startX = 0;
+let currentTranslate = 0;
+let isDragging = false;
+
+const pageWidth = () => document.querySelector(".slider-container").offsetWidth;
+
+/* --------------------------
+   TABS / SLIDER
+-------------------------- */
+
+function updateTabs() {
+    tabs.forEach(tab => tab.classList.remove("active"));
+    tabs[currentPage].classList.add("active");
+}
+
+function snapToPage(page) {
+    currentPage = page;
+
+    slider.style.transition = "transform 0.3s ease";
+    slider.style.transform =
+        `translateX(-${page * pageWidth()}px)`;
+
+    updateTabs();
+}
+
+tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        snapToPage(Number(tab.dataset.page));
+    });
+});
+
+window.addEventListener("resize", () => {
+    slider.style.transition = "none";
+    slider.style.transform =
+        `translateX(-${currentPage * pageWidth()}px)`;
+});
+
+/* --------------------------
+   TOUCH SWIPE
+-------------------------- */
+
+slider.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+
+    currentTranslate =
+        -currentPage * pageWidth();
+
+    slider.style.transition = "none";
+});
+
+slider.addEventListener("touchmove", e => {
+    if (!isDragging) return;
+
+    const currentX = e.touches[0].clientX;
+    const delta = currentX - startX;
+
+    slider.style.transform =
+        `translateX(${currentTranslate + delta}px)`;
+});
+
+slider.addEventListener("touchend", e => {
+    if (!isDragging) return;
+
+    isDragging = false;
+
+    const endX = e.changedTouches[0].clientX;
+    const delta = endX - startX;
+
+    if (Math.abs(delta) > pageWidth() * 0.2) {
+        if (delta < 0 && currentPage < 1) {
+            currentPage++;
+        }
+
+        if (delta > 0 && currentPage > 0) {
+            currentPage--;
+        }
+    }
+
+    snapToPage(currentPage);
+});
+
+/* --------------------------
+   DATA LOADING
+-------------------------- */
+
+async function loadAllData() {
+
+    const [
+        aufbauResult,
+        abbauResult
+    ] = await Promise.all([
+        client
+            .from("abigag_todo_aufbau")
+            .select("*"),
+
+        client
+            .from("abigag_todo_abbau")
+            .select("*")
+    ]);
+
+    if (aufbauResult.error) {
+        console.error(aufbauResult.error);
+    }
+
+    if (abbauResult.error) {
+        console.error(abbauResult.error);
+    }
+
+    aufbauData = aufbauResult.data || [];
+    abbauData = abbauResult.data || [];
+
+    renderTable("aufbau");
+    renderTable("abbau");
+}
+
+/* --------------------------
+   RENDERING
+-------------------------- */
+
+function renderTable(type) {
+
+    const table =
+        document.getElementById(`table-${type}`);
+
+    const search =
+        document.getElementById(`search-${type}`)
+        .value
+        .trim()
+        .toLowerCase();
+
+    table
+        .querySelectorAll(".data-row")
+        .forEach(el => el.remove());
+
+    const data =
+        type === "aufbau"
+            ? aufbauData
+            : abbauData;
+
+    data
+        .filter(entry =>
+            entry.aufgabe
+                .toLowerCase()
+                .includes(search)
+        )
+        .sort((a, b) => {
+            if (a.status !== b.status) {
+                return a.status - b.status;
+            }
+
+            return a.aufgabe.localeCompare(
+                b.aufgabe,
+                "de"
+            );
+        })
+        .forEach(entry =>
+            createRow(type, entry)
+        );
+}
+
+function createRow(type, entry) {
+
+    const table =
+        document.getElementById(`table-${type}`);
+
+    const tr = document.createElement("tr");
+
+    tr.classList.add("data-row");
+
+    if (entry.status) {
+        tr.classList.add("erledigt");
+    }
+
+    tr.innerHTML = `
+        <td>${entry.id}</td>
+        <td>${entry.aufgabe}</td>
+        <td class="status-cell">
+            ${entry.status ? "&check;" : "X"}
+        </td>
+        <td class="zusatz-cell" contenteditable="true">
+            ${entry.zusatz || ""}
+        </td>
+    `;
+
+    const statusTd =
+        tr.querySelector(".status-cell");
+
+    const zusatzTd =
+        tr.querySelector(".zusatz-cell");
+
+    const tableName =
+        type === "aufbau"
+            ? "abigag_todo_aufbau"
+            : "abigag_todo_abbau";
+
+    statusTd.addEventListener("click", async () => {
+
+        const newStatus = !entry.status;
+
+        const { error } = await client
+            .from(tableName)
+            .update({
+                status: newStatus
+            })
+            .eq("id", entry.id);
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        entry.status = newStatus;
+
+        renderTable(type);
+    });
+
+    let oldValue = entry.zusatz || "";
+
+    zusatzTd.addEventListener("focus", () => {
+        oldValue = zusatzTd.innerText.trim();
+    });
+
+    zusatzTd.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            zusatzTd.blur();
+        }
+    });
+
+    zusatzTd.addEventListener("blur", async () => {
+
+        const newValue =
+            zusatzTd.innerText.trim();
+
+        if (newValue === oldValue) {
+            return;
+        }
+
+        const { error } = await client
+            .from(tableName)
+            .update({
+                zusatz: newValue
+            })
+            .eq("id", entry.id);
+
+        if (error) {
+            console.error(error);
+            zusatzTd.innerText = oldValue;
+            return;
+        }
+
+        entry.zusatz = newValue;
+    });
+
+    table.appendChild(tr);
+}
+
+/* --------------------------
+   SEARCH
+-------------------------- */
+
+document
+    .getElementById("search-aufbau")
+    .addEventListener("input", () => {
+        renderTable("aufbau");
+    });
+
+document
+    .getElementById("search-abbau")
+    .addEventListener("input", () => {
+        renderTable("abbau");
+    });
+
+/* --------------------------
+   START
+-------------------------- */
+
+loadAllData();
+snapToPage(0);
+</script>
+
+</body>
+</html>
