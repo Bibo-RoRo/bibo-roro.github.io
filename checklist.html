@@ -54,8 +54,9 @@
             display: flex;
             width: 200%;
             touch-action: pan-y;
+            will-change: transform;
         }
-
+        
         .page {
             width: 50%;
             flex-shrink: 0;
@@ -177,6 +178,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const SUPABASE_URL = "https://euuptkidjsquvhohvicv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dXB0a2lkanNxdXZob2h2aWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMDk4OTksImV4cCI6MjA3MDU4NTg5OX0.O1isV0Ove_Tb1ruXqY_dlD4UdQGM174eVw9Kp_22YO4";
@@ -190,11 +193,17 @@ const slider = document.getElementById("slider");
 const tabs = document.querySelectorAll(".tab");
 
 let currentPage = 0;
-let startX = 0;
-let currentTranslate = 0;
-let isDragging = false;
 
-const pageWidth = () => document.querySelector(".slider-container").offsetWidth;
+let startX = 0;
+let startY = 0;
+
+let currentTranslate = 0;
+
+let isDragging = false;
+let isHorizontalSwipe = false;
+
+const pageWidth = () =>
+    document.querySelector(".slider-container").offsetWidth;
 
 /* --------------------------
    TABS / SLIDER
@@ -206,9 +215,11 @@ function updateTabs() {
 }
 
 function snapToPage(page) {
+
     currentPage = page;
 
     slider.style.transition = "transform 0.3s ease";
+
     slider.style.transform =
         `translateX(-${page * pageWidth()}px)`;
 
@@ -216,15 +227,24 @@ function snapToPage(page) {
 }
 
 tabs.forEach(tab => {
+
     tab.addEventListener("click", () => {
-        snapToPage(Number(tab.dataset.page));
+
+        snapToPage(
+            Number(tab.dataset.page)
+        );
+
     });
+
 });
 
 window.addEventListener("resize", () => {
+
     slider.style.transition = "none";
+
     slider.style.transform =
         `translateX(-${currentPage * pageWidth()}px)`;
+
 });
 
 /* --------------------------
@@ -232,45 +252,91 @@ window.addEventListener("resize", () => {
 -------------------------- */
 
 slider.addEventListener("touchstart", e => {
+
     startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+
     isDragging = true;
+    isHorizontalSwipe = false;
 
     currentTranslate =
         -currentPage * pageWidth();
 
     slider.style.transition = "none";
-});
+
+}, { passive: true });
 
 slider.addEventListener("touchmove", e => {
+
     if (!isDragging) return;
 
     const currentX = e.touches[0].clientX;
-    const delta = currentX - startX;
+    const currentY = e.touches[0].clientY;
+
+    const deltaX = currentX - startX;
+    const deltaY = currentY - startY;
+
+    if (!isHorizontalSwipe) {
+
+        if (
+            Math.abs(deltaY) > 10 &&
+            Math.abs(deltaY) > Math.abs(deltaX)
+        ) {
+            isDragging = false;
+            return;
+        }
+
+        if (
+            Math.abs(deltaX) > 10 &&
+            Math.abs(deltaX) > Math.abs(deltaY)
+        ) {
+            isHorizontalSwipe = true;
+        } else {
+            return;
+        }
+    }
 
     slider.style.transform =
-        `translateX(${currentTranslate + delta}px)`;
-});
+        `translateX(${currentTranslate + deltaX}px)`;
+
+}, { passive: true });
 
 slider.addEventListener("touchend", e => {
+
     if (!isDragging) return;
 
     isDragging = false;
 
-    const endX = e.changedTouches[0].clientX;
-    const delta = endX - startX;
+    if (!isHorizontalSwipe) {
+        return;
+    }
+
+    const endX =
+        e.changedTouches[0].clientX;
+
+    const delta =
+        endX - startX;
 
     if (Math.abs(delta) > pageWidth() * 0.2) {
-        if (delta < 0 && currentPage < 1) {
+
+        if (
+            delta < 0 &&
+            currentPage < 1
+        ) {
             currentPage++;
         }
 
-        if (delta > 0 && currentPage > 0) {
+        if (
+            delta > 0 &&
+            currentPage > 0
+        ) {
             currentPage--;
         }
     }
 
     snapToPage(currentPage);
-});
+
+}, { passive: true });
 
 /* --------------------------
    DATA LOADING
@@ -316,10 +382,11 @@ function renderTable(type) {
         document.getElementById(`table-${type}`);
 
     const search =
-        document.getElementById(`search-${type}`)
-        .value
-        .trim()
-        .toLowerCase();
+        document
+            .getElementById(`search-${type}`)
+            .value
+            .trim()
+            .toLowerCase();
 
     table
         .querySelectorAll(".data-row")
@@ -337,6 +404,7 @@ function renderTable(type) {
                 .includes(search)
         )
         .sort((a, b) => {
+
             if (a.status !== b.status) {
                 return a.status - b.status;
             }
@@ -345,6 +413,7 @@ function renderTable(type) {
                 b.aufgabe,
                 "de"
             );
+
         })
         .forEach(entry =>
             createRow(type, entry)
@@ -356,7 +425,8 @@ function createRow(type, entry) {
     const table =
         document.getElementById(`table-${type}`);
 
-    const tr = document.createElement("tr");
+    const tr =
+        document.createElement("tr");
 
     tr.classList.add("data-row");
 
@@ -410,14 +480,21 @@ function createRow(type, entry) {
     let oldValue = entry.zusatz || "";
 
     zusatzTd.addEventListener("focus", () => {
-        oldValue = zusatzTd.innerText.trim();
+
+        oldValue =
+            zusatzTd.innerText.trim();
+
     });
 
     zusatzTd.addEventListener("keydown", e => {
+
         if (e.key === "Enter") {
+
             e.preventDefault();
             zusatzTd.blur();
+
         }
+
     });
 
     zusatzTd.addEventListener("blur", async () => {
@@ -437,12 +514,17 @@ function createRow(type, entry) {
             .eq("id", entry.id);
 
         if (error) {
+
             console.error(error);
-            zusatzTd.innerText = oldValue;
+
+            zusatzTd.innerText =
+                oldValue;
+
             return;
         }
 
         entry.zusatz = newValue;
+
     });
 
     table.appendChild(tr);
@@ -455,13 +537,17 @@ function createRow(type, entry) {
 document
     .getElementById("search-aufbau")
     .addEventListener("input", () => {
+
         renderTable("aufbau");
+
     });
 
 document
     .getElementById("search-abbau")
     .addEventListener("input", () => {
+
         renderTable("abbau");
+
     });
 
 /* --------------------------
